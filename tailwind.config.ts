@@ -64,8 +64,8 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				app: {
-					'green': '#69D16F', 
-					'light-green': '#E8F9E9',
+					'green': '#3F8CFF', 
+					'light-green': '#E6F0FF',
 					'dark': '#202326',
 					'gray': '#F5F5F5',
 					'light-gray': '#F8F8F8',
