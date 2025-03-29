@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import NumPad from './NumPad';
 
 interface AmountInputProps {
@@ -14,10 +13,17 @@ const AmountInput: React.FC<AmountInputProps> = ({
   currency = '$' 
 }) => {
   const handleNumberClick = (num: number) => {
-    let newValue = value === '0.00' ? num.toString() : value + num.toString();
+    let newValue;
     
-    // Format value to proper money format
-    // Remove any non-numeric characters
+    // If current value is 0.00, replace it with the new number
+    if (value === '0.00') {
+      newValue = num.toString();
+    } else {
+      // Otherwise append the number
+      newValue = value + num.toString();
+    }
+    
+    // Format the value for display - remove any non-numeric characters
     newValue = newValue.replace(/[^0-9]/g, '');
     
     // Handle decimal point
@@ -54,10 +60,13 @@ const AmountInput: React.FC<AmountInputProps> = ({
     onChange(newValue);
   };
 
+  // Format the display value, removing leading zeros
+  const displayValue = value === '0.00' ? '' : value;
+
   return (
     <div className="text-center">
       <div className="text-5xl font-bold mb-8 mt-4">
-        {currency}{value}
+        {displayValue ? currency + displayValue : currency}
       </div>
       <NumPad onNumberClick={handleNumberClick} onDelete={handleDelete} />
     </div>
