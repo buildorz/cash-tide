@@ -1,52 +1,63 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import PhoneInput from '@/components/PhoneInput';
 import Button from '@/components/Button';
 import Logo from '@/components/Logo';
 import { useToast } from '@/components/ui/use-toast';
+import { usePrivy } from '@privy-io/react-auth';
+import Loader from '@/components/Loader';
 
 const Login: React.FC = () => {
+  const { ready, login, authenticated, } = usePrivy();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [verificationMode, setVerificationMode] = useState(false);
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
-  const { login, verifyCode } = useAuth();
+  const { loginProcess, isAuthenticated, logoutProcess } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleContinue = async () => {
-    if (phoneNumber.length < 10) {
-      toast({
-        variant: "destructive",
-        title: "Invalid phone number",
-        description: "Please enter a valid phone number",
-      });
-      return;
+  useEffect(() => {
+    if (ready && isAuthenticated) {
+      navigate('/home');
     }
+  }, [ready, isAuthenticated, navigate]);
+
+  const handleContinue = async () => {
+    // if (phoneNumber.length < 10) {
+    //   toast({
+    //     variant: "destructive",
+    //     title: "Invalid phone number",
+    //     description: "Please enter a valid phone number",
+    //   });
+    //   return;
+    // }
 
     setIsSubmitting(true);
     try {
-      await login(phoneNumber);
-      setVerificationMode(true);
+      // setVerificationMode(true);
     } catch (error) {
       console.error("Login error:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
+  const gotoDashboard = () => {
+    navigate('/home', { replace: true });
+  };
 
   const handleCodeChange = (index: number, value: string) => {
     if (value.length > 1) {
       value = value.charAt(0);
     }
-    
+
     if (value && !isNaN(Number(value))) {
       const newCode = [...verificationCode];
       newCode[index] = value;
       setVerificationCode(newCode);
-      
+
       // Auto-focus next input
       if (index < 5 && value) {
         const nextInput = document.getElementById(`code-${index + 1}`);
@@ -72,20 +83,20 @@ const Login: React.FC = () => {
   };
 
   const handleVerifyCode = async () => {
-    const code = verificationCode.join('');
-    if (code.length !== 6) {
-      toast({
-        variant: "destructive",
-        title: "Invalid code",
-        description: "Please enter the 6-digit verification code",
-      });
-      return;
-    }
+    // const code = verificationCode.join('');
+    // if (code.length !== 6) {
+    //   toast({
+    //     variant: "destructive",
+    //     title: "Invalid code",
+    //     description: "Please enter the 6-digit verification code",
+    //   });
+    //   return;
+    // }
 
-    setIsSubmitting(true);
+    // setIsSubmitting(true);
     try {
-      const success = await verifyCode(code);
-      if (success) {
+      // const success = await verifyCode(code);
+      if (isAuthenticated) {
         navigate('/home');
       }
     } catch (error) {
@@ -96,12 +107,15 @@ const Login: React.FC = () => {
   };
 
   const handleResendCode = () => {
-    login(phoneNumber);
-    toast({
-      title: "Code resent",
-      description: "A new verification code has been sent to your phone",
-    });
+    // login(phoneNumber);
+    // toast({
+    //   title: "Code resent",
+    //   description: "A new verification code has been sent to your phone",
+    // });
   };
+  if (!ready) {
+    return <Loader />;
+  }
 
   return (
     <div className="app-container flex flex-col justify-center p-6">
@@ -109,9 +123,41 @@ const Login: React.FC = () => {
         <Logo />
       </div>
 
-      <div className="bg-[url('/lovable-uploads/acb8c901-b70f-4265-9e1d-0f2afb24dd26.png')] bg-contain bg-center bg-no-repeat h-64 mb-8"></div>
+      {!isAuthenticated ? (
+        <><div className="bg-[url('/lovable-uploads/acb8c901-b70f-4265-9e1d-0f2afb24dd26.png')] bg-contain bg-center bg-no-repeat h-64 mb-8"></div>
+          <h1 className="text-3xl font-bold mb-4 text-center">Welcome to CashTide</h1>
+          <p className="text-gray-600 text-center mb-8">
+            Send money in seconds to anyone in the world, directly to their phone numbers.
+          </p>
+          <div className="space-y-6">
+            <Button
+              className="w-full"
+              disabled={isSubmitting}
+              onClick={loginProcess}
+            >
+              {isSubmitting ? "Sending code..." : "Log In"}
+            </Button>
+          </div>
+        </>) : (<>
+          <div className="space-y-6">
+            <Button
+              className="w-full"
+              disabled={isSubmitting}
+              onClick={gotoDashboard}
+            >
+              {"Dashboard"}
+            </Button>
+            <Button
+              className="w-full"
+              disabled={isSubmitting}
+              onClick={logoutProcess}
+            >
+              {"Log Out"}
+            </Button>
+          </div>
+        </>)}
 
-      {!verificationMode ? (
+      {/* {!verificationMode ? (
         <>
           <h1 className="text-3xl font-bold mb-4 text-center">Welcome to CashTide</h1>
           <p className="text-gray-600 text-center mb-8">
@@ -125,7 +171,7 @@ const Login: React.FC = () => {
               placeholder="Enter your phone number"
             />
 
-            <Button 
+            <Button
               className="w-full"
               disabled={isSubmitting}
               onClick={handleContinue}
@@ -157,7 +203,7 @@ const Login: React.FC = () => {
             ))}
           </div>
 
-          <Button 
+          <Button
             className="w-full mb-4"
             disabled={isSubmitting}
             onClick={handleVerifyCode}
@@ -169,7 +215,7 @@ const Login: React.FC = () => {
             Didn't get a message? <button onClick={handleResendCode} className="text-app-green font-medium">Resend code</button>
           </p>
         </>
-      )}
+      )} */}
     </div>
   );
 };

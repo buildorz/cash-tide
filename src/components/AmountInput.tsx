@@ -7,56 +7,62 @@ interface AmountInputProps {
   currency?: string;
 }
 
-const AmountInput: React.FC<AmountInputProps> = ({ 
-  value, 
-  onChange, 
-  currency = '$' 
+const AmountInput: React.FC<AmountInputProps> = ({
+  value,
+  onChange,
+  currency = '$'
 }) => {
   const handleNumberClick = (num: number) => {
     let newValue;
-    
     // If current value is 0.00, replace it with the new number
     if (value === '0.00') {
-      newValue = num.toString();
+      newValue = num.toString().padStart(value.length - 2, '0');
     } else {
-      // Otherwise append the number
-      newValue = value + num.toString();
+      // Remove decimal point from current value and append new number
+      newValue = value.replace('.', '') + num.toString();
     }
-    
-    // Format the value for display - remove any non-numeric characters
+
+    // Remove any non-numeric characters
     newValue = newValue.replace(/[^0-9]/g, '');
-    
-    // Handle decimal point
-    if (newValue.length <= 2) {
-      // For values less than $1
-      newValue = '0.' + newValue.padStart(2, '0');
-    } else {
-      // For values $1 and above
+    // Remove leading zeros except if the entire number is zero
+    newValue = newValue.replace(/^0+(?=\d)/, '');
+
+    // Format the value by adding decimal point
+    // If length is 1, pad with a leading zero
+    if (newValue.length === 1) {
+      newValue = '0.0' + newValue;
+    }
+    // If length is 2, format as 0.XX
+    else if (newValue.length === 2) {
+      newValue = '0.' + newValue;
+    }
+    // For longer numbers, insert decimal point before last 2 digits
+    else {
       newValue = newValue.slice(0, -2) + '.' + newValue.slice(-2);
     }
-    
+
     onChange(newValue);
   };
 
   const handleDelete = () => {
     if (value === '0.00') return;
-    
+
     // Remove one character
     let newValue = value.replace(/[^0-9]/g, '');
     newValue = newValue.slice(0, -1);
-    
+
     if (newValue.length === 0) {
       onChange('0.00');
       return;
     }
-    
+
     // Format the value
     if (newValue.length <= 2) {
       newValue = '0.' + newValue.padStart(2, '0');
     } else {
       newValue = newValue.slice(0, -2) + '.' + newValue.slice(-2);
     }
-    
+
     onChange(newValue);
   };
 
