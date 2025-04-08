@@ -62,10 +62,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAuthenticated(authenticated);
       // localStorage.setItem('user', JSON.stringify(privyUser));
       setUser(user);
-      toast({
-        title: "Login successful",
-        description: "Welcome to CashTide!",
-      });
+      if (authenticated) {
+        toast({
+          title: "Login successful",
+          description: "Welcome to CashTide!",
+        });
+      }
     } catch (error) {
       console.error('Login error:', error);
       toast({
