@@ -1,6 +1,4 @@
-
 import React, { useState } from 'react';
-import Header from '@/components/Header';
 import { useWallet } from '@/context/WalletContext';
 import { Clock, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { format } from 'date-fns';
@@ -10,8 +8,8 @@ const Activity: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'activity' | 'requests'>('activity');
 
   return (
-    <div className="app-container flex flex-col">
-      <Header showBackButton />
+    <div className="max-w-4xl mx-auto py-6">
+      <h1 className="text-2xl font-bold mb-6">Activity</h1>
       
       <div className="tabs flex border-b mb-4">
         <button

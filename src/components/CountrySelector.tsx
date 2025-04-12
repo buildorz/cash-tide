@@ -1,7 +1,12 @@
-
-import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
-import { ChevronDown } from 'lucide-react';
+import React from "react";
+import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface CountrySelectorProps {
   selectedCountry: {
@@ -14,11 +19,11 @@ interface CountrySelectorProps {
 }
 
 const countries = [
-  { code: 'IN', flag: '🇮🇳', dialCode: '+91' },
-  { code: 'US', flag: '🇺🇸', dialCode: '+1' },
-  { code: 'GB', flag: '🇬🇧', dialCode: '+44' },
-  { code: 'CA', flag: '🇨🇦', dialCode: '+1' },
-  { code: 'AU', flag: '🇦🇺', dialCode: '+61' },
+  { code: "IN", flag: "IN", dialCode: "+91" },
+  { code: "US", flag: "US", dialCode: "+1" },
+  { code: "GB", flag: "GB", dialCode: "+44" },
+  { code: "CA", flag: "CA", dialCode: "+1" },
+  { code: "AU", flag: "AU", dialCode: "+61" },
 ];
 
 const CountrySelector: React.FC<CountrySelectorProps> = ({
@@ -26,46 +31,42 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({
   onChange,
   className,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
-    <div className="relative">
-      <button
-        type="button"
-        className={cn(
-          "flex items-center gap-1 py-2 px-3 rounded-md bg-app-gray",
-          className
-        )}
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <span className="text-xl mr-1">{selectedCountry.flag}</span>
-        <span className="font-medium">{selectedCountry.code}</span>
-        <ChevronDown size={16} className="ml-1" />
-      </button>
-
-      {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-full bg-white rounded-md shadow-lg z-10">
-          <ul className="py-1">
-            {countries.map((country) => (
-              <li key={country.code}>
-                <button
-                  type="button"
-                  className="flex items-center w-full px-3 py-2 hover:bg-app-gray"
-                  onClick={() => {
-                    onChange(country);
-                    setIsOpen(false);
-                  }}
-                >
-                  <span className="text-xl mr-2">{country.flag}</span>
-                  <span>{country.code}</span>
-                  <span className="ml-2 text-app-text-gray">{country.dialCode}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+    <Select
+      value={selectedCountry.code}
+      onValueChange={(value) => {
+        const country = countries.find((c) => c.code === value);
+        if (country) {
+          onChange(country);
+        }
+      }}
+    >
+      <SelectTrigger className={cn("w-fit bg-app-gray border-0", className)}>
+        <div className="flex items-center gap-2">
+          <img
+            src={`https://flagcdn.com/${selectedCountry.flag.toLowerCase()}.svg`}
+            alt=""
+            className="w-6 h-6"
+          />
+          <SelectValue>{selectedCountry.code}</SelectValue>
         </div>
-      )}
-    </div>
+      </SelectTrigger>
+      <SelectContent>
+        {countries.map((country) => (
+          <SelectItem key={country.code} value={country.code}>
+            <div className="flex items-center gap-2">
+              <img
+                src={`https://flagcdn.com/${country.flag.toLowerCase()}.svg`}
+                alt=""
+                className="w-6 h-6"
+              />
+              <span>{country.code}</span>
+              <span className="text-app-text-gray">{country.dialCode}</span>
+            </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 };
 

@@ -15,58 +15,51 @@ const AmountInput: React.FC<AmountInputProps> = ({
   const handleNumberClick = (num: number) => {
     let newValue;
     
-    // If current value is 0.00, replace it with the new number
-    if (value === '0.00') {
+    // If current value is 0 or 0.00, replace it
+    if (value === '0' || value === '0.00' || value === '') {
       newValue = num.toString();
     } else {
       // Otherwise append the number
-      newValue = value + num.toString();
+      newValue = value.replace(/[^0-9]/g, '') + num.toString();
     }
-    
-    // Format the value for display - remove any non-numeric characters
-    newValue = newValue.replace(/[^0-9]/g, '');
-    
-    // Handle decimal point
-    if (newValue.length <= 2) {
-      // For values less than $1
-      newValue = '0.' + newValue.padStart(2, '0');
-    } else {
-      // For values $1 and above
-      newValue = newValue.slice(0, -2) + '.' + newValue.slice(-2);
-    }
+
+    // Format the value as currency
+    const numericValue = parseInt(newValue, 10);
+    newValue = (numericValue / 100).toFixed(2);
     
     onChange(newValue);
   };
 
   const handleDelete = () => {
-    if (value === '0.00') return;
+    // If value is already 0 or empty, do nothing
+    if (value === '0' || value === '0.00' || value === '') {
+      onChange('0');
+      return;
+    }
     
-    // Remove one character
+    // Remove one character from the numeric portion
     let newValue = value.replace(/[^0-9]/g, '');
     newValue = newValue.slice(0, -1);
     
     if (newValue.length === 0) {
-      onChange('0.00');
+      onChange('0');
       return;
     }
     
-    // Format the value
-    if (newValue.length <= 2) {
-      newValue = '0.' + newValue.padStart(2, '0');
-    } else {
-      newValue = newValue.slice(0, -2) + '.' + newValue.slice(-2);
-    }
+    // Format the remaining value as currency
+    const numericValue = parseInt(newValue, 10);
+    newValue = (numericValue / 100).toFixed(2);
     
     onChange(newValue);
   };
 
-  // Format the display value, removing leading zeros
-  const displayValue = value === '0.00' ? '' : value;
+  // Format the display value
+  const displayValue = value === '0' || value === '0.00' || value === '' ? '0' : value;
 
   return (
     <div className="text-center">
       <div className="text-5xl font-bold mb-8 mt-4">
-        {displayValue ? currency + displayValue : currency}
+        {currency}{displayValue}
       </div>
       <NumPad onNumberClick={handleNumberClick} onDelete={handleDelete} />
     </div>

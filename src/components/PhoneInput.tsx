@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import CountrySelector from './CountrySelector';
+import React, { useState } from "react";
+import CountrySelector from "./CountrySelector";
 
 interface PhoneInputProps {
   value: string;
@@ -8,20 +7,28 @@ interface PhoneInputProps {
   placeholder?: string;
 }
 
-const PhoneInput: React.FC<PhoneInputProps> = ({ value, onChange, placeholder = "Phone number" }) => {
+const PhoneInput: React.FC<PhoneInputProps> = ({
+  value,
+  onChange,
+  placeholder = "Phone number",
+}) => {
   const [selectedCountry, setSelectedCountry] = useState({
-    code: 'IN',
-    flag: '🇮🇳',
-    dialCode: '+91'
+    code: "IN",
+    flag: "IN",
+    dialCode: "+91",
   });
 
-  const handleCountryChange = (country: { code: string; flag: string; dialCode: string }) => {
+  const handleCountryChange = (country: {
+    code: string;
+    flag: string;
+    dialCode: string;
+  }) => {
     setSelectedCountry(country);
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Only allow digits
-    const phoneNumber = e.target.value.replace(/\D/g, '');
+    const phoneNumber = e.target.value.replace(/\D/g, "");
     onChange(phoneNumber);
   };
 
@@ -37,7 +44,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({ value, onChange, placeholder = 
         value={value}
         onChange={handlePhoneChange}
         placeholder={placeholder}
-        className="flex-1 px-4 py-2 rounded-md bg-app-gray text-lg focus:outline-none"
+        className="flex-1 px-4 py-2 rounded-md bg-app-gray text-lg focus:outline-none w-full"
       />
     </div>
   );

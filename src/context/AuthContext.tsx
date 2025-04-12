@@ -1,6 +1,11 @@
-
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { showError, showSuccess } from "@/lib/utils";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+} from "react";
 
 interface User {
   id: string;
@@ -20,35 +25,34 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     // Check if user is already logged in from localStorage
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
       setIsAuthenticated(true);
     }
+    setIsLoading(false);
   }, []);
 
   const login = async (phoneNumber: string) => {
     try {
       // This would normally make an API call to send a verification code
       // For demo, we'll just simulate a successful code sending
-      toast({
-        title: "Verification code sent",
-        description: `A code has been sent to ${phoneNumber}`,
-      });
+      showSuccess(
+        "Verification code sent",
+        `A code has been sent to ${phoneNumber}`
+      );
     } catch (error) {
-      console.error('Login error:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to send verification code",
-      });
+      console.error("Login error:", error);
+      showError("Login failed", "Please try again later");
     }
   };
 
@@ -56,33 +60,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // This would normally verify the code with an API
       // For demo, we'll just accept any code and create a mock user
-      
+
       // Create mock user
       const mockUser: User = {
-        id: 'user_' + Math.random().toString(36).substr(2, 9),
-        phoneNumber: '+91XXXXXXXXXX',
-        email: 'user@example.com',
-        name: 'Demo User',
-        balance: 0.00
+        id: "user_" + Math.random().toString(36).substr(2, 9),
+        phoneNumber: "+91XXXXXXXXXX",
+        email: "user@example.com",
+        name: "Demo User",
+        balance: 0.0,
       };
-      
+
       setUser(mockUser);
       setIsAuthenticated(true);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      
-      toast({
-        title: "Login successful",
-        description: "Welcome to CashTide!",
-      });
-      
+      localStorage.setItem("user", JSON.stringify(mockUser));
+
+      showSuccess("Login successful", "You are now logged in");
+
       return true;
     } catch (error) {
-      console.error('Verification error:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Invalid verification code",
-      });
+      console.error("Verification error:", error);
+      showError("Verification failed", "Invalid verification code");
       return false;
     }
   };
@@ -90,15 +87,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('user');
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out",
-    });
+    localStorage.removeItem("user");
+    showSuccess("Logged out", "You have been successfully logged out");
   };
 
+  if (isLoading) {
+    return null;
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, verifyCode }}>
+    <AuthContext.Provider
+      value={{ user, isAuthenticated, login, logout, verifyCode }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -107,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
