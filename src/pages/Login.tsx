@@ -1,4 +1,10 @@
+import { getAuth, RecaptchaVerifier } from "firebase/auth";
 
+declare global {
+  interface Window {
+    recaptchaVerifier: RecaptchaVerifier;
+  }
+}
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -24,6 +30,20 @@ const Login: React.FC = () => {
       navigate('/home');
     }
   }, [ready, isAuthenticated, navigate]);
+
+
+  const auth = getAuth();
+  // auth.languageCode = 'it';
+  // To apply the default browser preference instead of explicitly setting it.
+  auth.useDeviceLanguage();
+
+  window.recaptchaVerifier = new RecaptchaVerifier(auth, 'sign-in-button', {
+    'size': 'invisible',
+    'callback': (response) => {
+      // reCAPTCHA solved, allow signInWithPhoneNumber.
+      onSignInSubmit();
+    }
+  });
 
   const handleContinue = async () => {
     // if (phoneNumber.length < 10) {
