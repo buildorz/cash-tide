@@ -24,7 +24,8 @@ const countries = [
   { code: "GB", flag: "GB", dialCode: "+44" },
   { code: "CA", flag: "CA", dialCode: "+1" },
   { code: "AU", flag: "AU", dialCode: "+61" },
-];
+  { code: "NG", flag: "NG", dialCode: "+234" },
+  { code: "ZA", flag: "ZA", dialCode: "+27" },];
 
 const CountrySelector: React.FC<CountrySelectorProps> = ({
   selectedCountry,

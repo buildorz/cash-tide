@@ -103,6 +103,7 @@ const Login: React.FC = () => {
             >
               {isSubmitting ? "Sending code..." : "Continue"}
             </Button>
+            <div id="recaptcha-container"></div>
           </div>
         </>
       ) : (

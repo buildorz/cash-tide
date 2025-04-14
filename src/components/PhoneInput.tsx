@@ -29,6 +29,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Only allow digits
     const phoneNumber = e.target.value.replace(/\D/g, "");
+    console.log("no: ", phoneNumber);
     onChange(phoneNumber);
   };
 

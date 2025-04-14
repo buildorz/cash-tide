@@ -1,4 +1,6 @@
 import { showError, showSuccess } from "@/lib/utils";
+import { auth, RecaptchaVerifier, signInWithPhoneNumber } from "@/auth";
+
 import React, {
   createContext,
   useState,
@@ -6,6 +8,12 @@ import React, {
   useEffect,
   useLayoutEffect,
 } from "react";
+
+declare global {
+  interface Window {
+    recaptchaVerifier: RecaptchaVerifier;
+  }
+}
 
 interface User {
   id: string;
@@ -44,6 +52,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const login = async (phoneNumber: string) => {
     try {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          size: 'normal',
+          callback: () => {
+            showSuccess('reCAPTCHA verified');
+          },
+          'expired-callback': () => {
+            showError('reCAPTCHA expired');
+          },
+        });
+      }
+      await signInWithPhoneNumber(auth, "+2347065400423", window.recaptchaVerifier).then((result) => {
+        console.log("result: ", result);
+        showSuccess("Verification code sent", "Please check your phone");
+      }).catch((error) => {
+        console.error("Error during sign-in:", error);
+        showError("Sign-in failed", "Please try again later");
+      });
       // This would normally make an API call to send a verification code
       // For demo, we'll just simulate a successful code sending
       showSuccess(
