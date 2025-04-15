@@ -17,11 +17,13 @@ const QRCode: React.FC = () => {
   return (
     <div className="container max-w-md mx-auto pt-6">
       <h1 className="text-2xl font-bold mb-6">QR Code</h1>
-      
+
       <div className="tabs flex border-b mb-4">
         <button
           className={`flex-1 py-4 text-center font-medium ${
-            activeTab === "my-code" ? "border-b-2 border-primary text-primary" : ""
+            activeTab === "my-code"
+              ? "border-b-2 border-primary text-primary"
+              : ""
           }`}
           onClick={() => setActiveTab("my-code")}
         >
@@ -48,13 +50,10 @@ const QRCode: React.FC = () => {
               <div className="flex justify-center mb-4">
                 <Logo />
               </div>
-              <div className="w-full h-64 bg-[url('/lovable-uploads/88522aae-2630-4fe3-b800-8d200de860be.png')] bg-contain bg-center bg-no-repeat"></div>
+              <div className="w-full h-64  bg-contain bg-center bg-no-repeat"></div>
             </div>
 
-            <Button
-              className="w-full"
-              onClick={handleShare}
-            >
+            <Button className="w-full" onClick={handleShare}>
               <Share2 size={18} className="mr-2" />
               Share request link
             </Button>

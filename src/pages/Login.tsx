@@ -11,6 +11,8 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { Icons } from "@/components/ui/icons";
+import { UserIcon } from "lucide-react";
 
 const Login: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -72,86 +74,111 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="app-container flex flex-col justify-center p-6">
+    <div className="flex flex-col justify-center p-3 sm:p-6 min-h-[100dvh]">
       <Link to={"/"} className="text-center mb-8">
         <Logo />
       </Link>
 
-      <div className="bg-[url('/lovable-uploads/acb8c901-b70f-4265-9e1d-0f2afb24dd26.png')] bg-contain bg-center bg-no-repeat h-64 mb-8"></div>
+      <div className="max-w-[1140px] mx-auto h-full flex items-center justify-center flex-col flex-1 ">
+        <Icons.pattern className="w-full absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2" />
 
-      {!verificationMode ? (
-        <>
-          <h1 className="text-3xl font-bold mb-4 text-center">
-            Welcome to CashTide
-          </h1>
-          <p className="text-gray-600 text-center mb-8">
-            Send money in seconds to anyone in the world, directly to their
-            phone numbers.
-          </p>
+        <div className="bg-white relative w-full max-w-[440px] mx-auto p-4 rounded-[20px] md:p-8 border border-[#E1E4EA] shadow-[0px_1px_2px_0px_#0A0D1408]">
+          {!verificationMode ? (
+            <div className="flex flex-col items-center gap-6">
+              <div className="size-24 bg-[linear-gradient(180deg,_rgba(113,_119,_132,_0.1)_0%,_rgba(113,_119,_132,_0)_100%)] p-4 rounded-full">
+                <div className="size-full rounded-full bg-white border border-[#E1E4EA] shadow-[0px_1px_2px_0px_#0A0D1408] p-4">
+                  <Icons.user />
+                </div>
+              </div>
 
-          <div className="space-y-6">
-            <PhoneInput
-              value={phoneNumber}
-              onChange={setPhoneNumber}
-              placeholder="Enter your phone number"
-            />
+              <div className="space-y-1 text-center">
+                <h1 className="text-2xl font-normal text-[#0E121B]">
+                  Welcome to CashTide
+                </h1>
+                <p className="text-[#525866]">
+                  Send money in seconds to anyone in the world, directly to
+                  their phone numbers.
+                </p>
+              </div>
 
-            <Button
-              className="w-full"
-              disabled={isSubmitting}
-              onClick={handleContinue}
-            >
-              {isSubmitting ? "Sending code..." : "Continue"}
-            </Button>
-            <div id="recaptcha-container"></div>
-          </div>
-        </>
-      ) : (
-        <>
-          <h1 className="text-2xl font-bold mb-4 text-center">
-            Enter confirmation code
-          </h1>
-          <p className="text-gray-600 text-center mb-8">
-            Please check +91 {phoneNumber} for a message from CashTide and enter
-            your code below.
-          </p>
+              <div className="w-full h-px bg-[#E1E4EA]" />
 
-          <div className="flex justify-between mb-8 max-w-md mx-auto">
-            <InputOTP
-              maxLength={6}
-              onChange={(e) => setVerificationCode(e)}
-              value={verificationCode}
-            >
-              <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-            </InputOTP>
-          </div>
+              <PhoneInput
+                value={phoneNumber}
+                onChange={setPhoneNumber}
+                placeholder="Enter your phone number"
+              />
 
-          <Button
-            className="w-full mb-4"
-            disabled={isSubmitting}
-            onClick={handleVerifyCode}
-          >
-            {isSubmitting ? "Verifying..." : "Verify Code"}
-          </Button>
+              <Button
+                className="w-full rounded-[10px]"
+                disabled={isSubmitting}
+                onClick={handleContinue}
+              >
+                {isSubmitting ? "Sending code..." : "Continue"}
+              </Button>
+              <div id="recaptcha-container"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-6">
+              <div className="size-24 bg-[linear-gradient(180deg,_rgba(113,_119,_132,_0.1)_0%,_rgba(113,_119,_132,_0)_100%)] p-4 rounded-full">
+                <div className="size-full rounded-full bg-white border border-[#E1E4EA] shadow-[0px_1px_2px_0px_#0A0D1408] p-4">
+                  <Icons.message />
+                </div>
+              </div>
 
-          <p className="text-center">
-            Didn't get a message?{" "}
-            <button
-              onClick={handleResendCode}
-              className="text-app-green font-medium"
-            >
-              Resend code
-            </button>
-          </p>
-        </>
-      )}
+              <div className="space-y-1 text-center">
+                <h1 className="text-2xl font-normal text-center">
+                  Enter Verification Code
+                </h1>
+                <p className="text-[#525866] text-center mb-8">
+                  Please check{" "}
+                  <span className="text-[#0E121B] font-medium">
+                    {phoneNumber}
+                  </span>{" "}
+                  for a message from CashTide and enter your code below.
+                </p>
+              </div>
+
+              <div className="w-full h-px bg-[#E1E4EA]" />
+
+              <InputOTP
+                maxLength={6}
+                onChange={(e) => setVerificationCode(e)}
+                value={verificationCode}
+              >
+                <InputOTPGroup className="gap-1">
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+
+              <Button
+                className="w-full rounded-[10px]"
+                disabled={isSubmitting}
+                onClick={handleVerifyCode}
+              >
+                {isSubmitting ? "Verifying..." : "Verify Code"}
+              </Button>
+
+              <div className="flex items-center flex-col">
+                <p className=" text-sm">
+                  Experiencing issues receiving the code?
+                </p>
+                <button
+                  onClick={handleResendCode}
+                  className="text-app-green  font-medium"
+                >
+                  Resend code
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

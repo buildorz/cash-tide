@@ -188,7 +188,7 @@ const RequestMoney: React.FC = () => {
         </div>
 
         <Card className="aspect-square flex items-center justify-center">
-          <div className="w-3/4 h-3/4 bg-[url('/lovable-uploads/88522aae-2630-4fe3-b800-8d200de860be.png')] bg-contain bg-center bg-no-repeat"></div>
+          <div className="w-3/4 h-3/4 bg-contain bg-center bg-no-repeat"></div>
         </Card>
       </div>
 

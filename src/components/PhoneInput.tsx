@@ -34,19 +34,28 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   };
 
   return (
-    <div className="flex items-stretch w-full gap-2">
-      <CountrySelector
-        selectedCountry={selectedCountry}
-        onChange={handleCountryChange}
-        className="shrink-0"
-      />
-      <input
-        type="tel"
-        value={value}
-        onChange={handlePhoneChange}
-        placeholder={placeholder}
-        className="flex-1 px-4 py-2 rounded-md bg-app-gray text-lg focus:outline-none w-full"
-      />
+    <div className="space-y-1">
+      <label
+        htmlFor="phone-input"
+        className="text-sm font-medium text-[#0E121B]"
+      >
+        Phone Number <span className="text-[#335CFF] tx">*</span>
+      </label>
+
+      <div className="flex items-stretch w-full gap-1">
+        <CountrySelector
+          selectedCountry={selectedCountry}
+          onChange={handleCountryChange}
+          className="shrink-0"
+        />
+        <input
+          type="tel"
+          value={value}
+          onChange={handlePhoneChange}
+          placeholder={placeholder}
+          className="flex-1 px-4 py-2 rounded-md bg-white border border-[#E1E4EA] text-base placeholder:text-sm font-normal focus:outline-none w-full"
+        />
+      </div>
     </div>
   );
 };

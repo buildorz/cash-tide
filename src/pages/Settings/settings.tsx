@@ -30,6 +30,10 @@ const Settings: React.FC = () => {
     navigate("/login");
   };
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+
   const settingsGroups = [
     {
       title: "Account",
@@ -39,12 +43,14 @@ const Settings: React.FC = () => {
           title: "Personal Information",
           description: "Update your personal details",
           badge: "Incomplete",
+          path: "/settings/account/personal-information",
         },
         {
           icon: <CreditCard size={20} />,
           title: "Payment Methods",
           description: "Manage your payment options",
           badge: "2 Cards",
+          path: "/settings/account/payment-methods",
         },
       ],
     },
@@ -56,12 +62,14 @@ const Settings: React.FC = () => {
           title: "Security Settings",
           description: "Password and authentication",
           badge: "Enhanced",
+          path: "/settings/security/security-settings",
         },
         {
           icon: <Bell size={20} />,
           title: "Notifications",
           description: "Manage your alerts",
           badge: "All Active",
+          path: "/settings/security/notifications",
         },
       ],
     },
@@ -72,6 +80,7 @@ const Settings: React.FC = () => {
           icon: <HelpCircle size={20} />,
           title: "Help Center",
           description: "FAQs and support resources",
+          path: "/settings/support/help-center",
         },
       ],
     },
@@ -81,7 +90,7 @@ const Settings: React.FC = () => {
     <div className="w-full max-w-2xl mx-auto pb-24 md:pb-16 lg:pb-8">
       <Header title="Settings" showBackButton />
 
-      <div className="space-y-4 sm:space-y-6 md:space-y-8 p-2 sm:p-3 md:p-4">
+      <div className="space-y-4 sm:space-y-6 md:space-y-8 ">
         {/* Profile Card */}
         <Card className="p-3 sm:p-4 md:p-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 left-0 h-12 sm:h-16 md:h-20 bg-gradient-to-r from-primary/10 to-primary/5" />
@@ -139,6 +148,7 @@ const Settings: React.FC = () => {
                     className="w-full"
                     whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
                     whileTap={{ scale: 0.995 }}
+                    onClick={() => handleNavigation(item.path)}
                   >
                     <div className="flex items-center gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-4">
                       <div className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">

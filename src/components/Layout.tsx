@@ -12,10 +12,17 @@ import {
   Menu,
   PlusIcon,
   SendIcon,
-  Settings,
   SettingsIcon,
 } from "lucide-react";
-import { Link, Navigate, NavLink, Outlet, useNavigate } from "react-router-dom";
+import React from "react";
+import {
+  Link,
+  Navigate,
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import Logo from "./Logo";
 
 const links = [
@@ -51,10 +58,40 @@ const links = [
   },
 ];
 
+const tabLinks = [
+  {
+    name: "Dashboard",
+    href: "/home",
+    icon: <HomeIcon className="h-5 w-5 mr-3" />,
+  },
+  {
+    name: "Activity",
+    href: "/activity",
+    icon: <HistoryIcon className="h-5 w-5 mr-3" />,
+  },
+  {
+    name: "Add Money",
+    href: "/add-funds",
+    icon: <PlusIcon className="h-5 w-5 mr-3" />,
+  },
+  {
+    name: "Settings",
+    href: "/settings",
+    icon: <SettingsIcon className="h-5 w-5 mr-3" />,
+  },
+];
+
 export default function Layout() {
-  //   const [activeTab, setActiveTab] = useState("home");
   const { isAuthenticated } = useAuth();
+
+  const [openMobile, setOpenMobile] = React.useState(false);
+
   const navigate = useNavigate();
+  const location = useLocation();
+
+  React.useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -74,6 +111,7 @@ export default function Layout() {
           <div className="space-y-1">
             {links.map((link) => (
               <NavLink
+                key={link.href}
                 to={link.href}
                 className={({ isActive }) =>
                   `${cn(
@@ -107,30 +145,37 @@ export default function Layout() {
       {/* Mobile Header */}
       <header className="p-4 flex items-center justify-between md:hidden">
         <div className="flex items-center gap-2">
-          <Sheet>
+          <Sheet open={openMobile} onOpenChange={setOpenMobile}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0">
-              <div className="p-6 border-b border-border">
-                <h1 className="text-xl font-bold">cashtide</h1>
+              <div className="p-6 py-3 border-b border-border">
+                <Link to={"/home"} className="text-center">
+                  <Logo />
+                </Link>
               </div>
+
               <nav className="p-4">
                 <div className="space-y-4">
                   {links.map((link) => (
-                    <Button
+                    <NavLink
                       key={link.href}
-                      variant="ghost"
-                      className="w-full justify-start hover:bg-muted"
-                      asChild
+                      to={link.href}
+                      onClick={() => setOpenMobile(false)}
+                      className={({ isActive }) =>
+                        `${cn(
+                          buttonVariants({ variant: "ghost" }),
+                          "w-full justify-start hover:bg-muted",
+                          isActive ? "bg-muted" : ""
+                        )}`
+                      }
                     >
-                      <NavLink to={link.href}>
-                        {link.icon}
-                        {link.name}
-                      </NavLink>
-                    </Button>
+                      {link.icon}
+                      {link.name}
+                    </NavLink>
                   ))}
                 </div>
               </nav>
@@ -152,7 +197,9 @@ export default function Layout() {
               </div>
             </SheetContent>
           </Sheet>
-          <h1 className="text-xl font-bold">cashtide</h1>
+          <Link to={"/home"} className="text-center">
+            <Logo />
+          </Link>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="rounded-full">
@@ -199,7 +246,7 @@ export default function Layout() {
           onValueChange={(e) => navigate(e)}
         >
           <TabsList className="grid grid-cols-4 bg-transparent h-16">
-            {links.map((link) => (
+            {tabLinks.map((link) => (
               <TabsTrigger
                 key={link.href}
                 value={link.href}
