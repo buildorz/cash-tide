@@ -19,7 +19,14 @@ import NotFound from "./pages/NotFound";
 import QRCode from "./pages/QRCode";
 import RequestMoney from "./pages/RequestMoney/RequestMoney";
 import Send from "./pages/SendMoney/Send";
-import Settings from "./pages/Settings";
+
+import Settings from "./pages/Settings/settings";
+// Settings Sub-pages
+import PaymentMethods from "./pages/Settings/account/payment-methods";
+import PersonalInformation from "./pages/Settings/account/personal-information";
+import Notifications from "./pages/Settings/security/notifications";
+import SecuritySettings from "./pages/Settings/security/security-settings";
+import HelpCenter from "./pages/Settings/support/help-center";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +66,27 @@ const router = createBrowserRouter([
       {
         path: "settings",
         element: <Settings />,
+      },
+      // Settings sub-routes
+      {
+        path: "settings/account/personal-information",
+        element: <PersonalInformation />,
+      },
+      {
+        path: "settings/account/payment-methods",
+        element: <PaymentMethods />,
+      },
+      {
+        path: "settings/security/security-settings",
+        element: <SecuritySettings />,
+      },
+      {
+        path: "settings/security/notifications",
+        element: <Notifications />,
+      },
+      {
+        path: "settings/support/help-center",
+        element: <HelpCenter />,
       },
     ],
   },

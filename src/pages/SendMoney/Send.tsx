@@ -52,11 +52,7 @@ const Send: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between mb-6">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(-1)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div className="text-sm text-muted-foreground">
@@ -75,11 +71,7 @@ const Send: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between mb-6">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleBack}
-              >
+              <Button variant="ghost" size="sm" onClick={handleBack}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div className="text-sm text-muted-foreground">
@@ -89,14 +81,13 @@ const Send: React.FC = () => {
             <div className="space-y-6">
               <div className="text-center">
                 <h1 className="text-2xl font-bold mb-2">Recipient</h1>
-                <p className="text-muted-foreground">Enter the recipient's phone number</p>
+                <p className="text-muted-foreground">
+                  Enter the recipient's phone number
+                </p>
               </div>
-              
-              <Card className="p-4">
+
+              <Card className="p-2">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User2 className="h-5 w-5" />
-                  </div>
                   <div className="flex-1">
                     <PhoneInput
                       value={phoneNumber}
@@ -114,11 +105,7 @@ const Send: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between mb-6">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleBack}
-              >
+              <Button variant="ghost" size="sm" onClick={handleBack}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div className="text-sm font-medium">Transaction Summary</div>
@@ -143,8 +130,12 @@ const Send: React.FC = () => {
                       <User2 className="h-5 w-5" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium">+91 {phoneNumber}</div>
-                      <div className="text-xs text-muted-foreground">Mobile Number</div>
+                      <div className="text-sm font-medium">
+                        +91 {phoneNumber}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Mobile Number
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -160,10 +151,8 @@ const Send: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto h-[calc(100vh-4rem)] flex flex-col p-4">
-      <div className="flex-1">
-        {renderStep()}
-      </div>
+    <div className="max-w-md mx-auto h-[calc(100vh-4rem)] flex flex-col ">
+      <div className="">{renderStep()}</div>
 
       <div className="py-4">
         {step === "summary" ? (
@@ -177,11 +166,7 @@ const Send: React.FC = () => {
               Add funds
             </Button>
           ) : (
-            <Button 
-              onClick={handleSend} 
-              className="w-full"
-              size="lg"
-            >
+            <Button onClick={handleSend} className="w-full" size="lg">
               <SendIcon className="mr-2 h-5 w-5" />
               Send Money
             </Button>

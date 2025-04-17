@@ -28,9 +28,9 @@ const AddFunds: React.FC = () => {
     <div className="max-w-7xl mx-auto md:p-6">
       <Header title="Add Funds" showBackButton />
 
-      <div className="grid gap-6 p-4 md:p-0">
+      <div className="grid gap-6 md:p-0">
         <Card className="bg-card border-border">
-          <CardContent className="p-6">
+          <CardContent className="p-3">
             <div className="mb-8">
               <AmountInput value={amount} onChange={setAmount} />
             </div>
@@ -103,18 +103,16 @@ const AddFunds: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            <Button
+              onClick={handleAddFunds}
+              className="w-full mt-6"
+              disabled={parseFloat(amount) <= 0}
+            >
+              Add Funds
+            </Button>
           </CardContent>
         </Card>
-      </div>
-
-      <div className="fixed bottom-6 left-0 right-0 p-4 md:relative md:p-0 md:mt-6">
-        <Button
-          onClick={handleAddFunds}
-          className="w-full"
-          disabled={parseFloat(amount) <= 0}
-        >
-          Add Funds
-        </Button>
       </div>
     </div>
   );

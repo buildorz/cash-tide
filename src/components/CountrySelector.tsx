@@ -25,7 +25,8 @@ const countries = [
   { code: "CA", flag: "CA", dialCode: "+1" },
   { code: "AU", flag: "AU", dialCode: "+61" },
   { code: "NG", flag: "NG", dialCode: "+234" },
-  { code: "ZA", flag: "ZA", dialCode: "+27" },];
+  { code: "ZA", flag: "ZA", dialCode: "+27" },
+];
 
 const CountrySelector: React.FC<CountrySelectorProps> = ({
   selectedCountry,
@@ -42,7 +43,9 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({
         }
       }}
     >
-      <SelectTrigger className={cn("w-fit bg-app-gray border-0", className)}>
+      <SelectTrigger
+        className={cn("w-fit bg-white border-[#E1E4EA]", className)}
+      >
         <div className="flex items-center gap-2">
           <img
             src={`https://flagcdn.com/${selectedCountry.flag.toLowerCase()}.svg`}
