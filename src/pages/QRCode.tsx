@@ -3,9 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
 import { showSuccess } from "@/lib/utils";
 import Logo from "@/components/Logo";
+import { useAuth } from "@/context/AuthContext";
+import { QRCodeSVG } from "qrcode.react";
 
 const QRCode: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"my-code" | "scan">("my-code");
+
+  const { user } = useAuth();
 
   const handleShare = () => {
     showSuccess(
@@ -13,6 +17,8 @@ const QRCode: React.FC = () => {
       "Your payment link has been copied to clipboard"
     );
   };
+
+  console.log(user);
 
   return (
     <div className="container max-w-md mx-auto pt-6">
@@ -50,7 +56,25 @@ const QRCode: React.FC = () => {
               <div className="flex justify-center mb-4">
                 <Logo />
               </div>
-              <div className="w-full h-64  bg-contain bg-center bg-no-repeat"></div>
+              <div className="w-full h-64 ">
+                <QRCodeSVG
+                  value={user.phoneNumber}
+                  title={"CashTide QR Code"}
+                  className="size-full"
+                  bgColor={"#ffffff"}
+                  fgColor={"#000000"}
+                  level={"L"}
+                  imageSettings={{
+                    src: "https://static.zpao.com/favicon.png",
+                    x: undefined,
+                    y: undefined,
+                    height: 20,
+                    width: 20,
+                    opacity: 1,
+                    excavate: true,
+                  }}
+                />
+              </div>
             </div>
 
             <Button className="w-full" onClick={handleShare}>
