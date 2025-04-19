@@ -65,7 +65,7 @@ const QRCode: React.FC = () => {
                   fgColor={"#000000"}
                   level={"L"}
                   imageSettings={{
-                    src: "https://static.zpao.com/favicon.png",
+                    src: "/favicon.svg",
                     x: undefined,
                     y: undefined,
                     height: 20,
