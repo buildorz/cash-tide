@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Share2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useWallet } from "@/context/WalletContext";
 import { useAuth } from "@/context/AuthContext";
 import { showSuccess } from "@/lib/utils";
@@ -231,6 +231,9 @@ const RequestMoney: React.FC = () => {
         />
 
         <div className="space-y-8">{renderStep()}</div>
+        <p className="text-center py-3 hover:underline cursor-pointer underline-offset-4">
+          <Link to={"/qr"}>Request using QR Code</Link>
+        </p>
       </div>
     </div>
   );
