@@ -13,4 +13,3 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 export { auth, RecaptchaVerifier, signInWithPhoneNumber };
-// window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {});

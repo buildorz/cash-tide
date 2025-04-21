@@ -5,12 +5,14 @@ interface PhoneInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  setCountry: (value: string) => void;
 }
 
 const PhoneInput: React.FC<PhoneInputProps> = ({
   value,
   onChange,
   placeholder = "Phone number",
+  setCountry
 }) => {
   const [selectedCountry, setSelectedCountry] = useState({
     code: "IN",
@@ -24,6 +26,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     dialCode: string;
   }) => {
     setSelectedCountry(country);
+    setCountry(country.dialCode);
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {

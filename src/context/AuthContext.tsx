@@ -1,5 +1,6 @@
 import { showError, showSuccess } from "@/lib/utils";
 import { auth, RecaptchaVerifier, signInWithPhoneNumber } from "@/auth";
+import { ConfirmationResult } from "firebase/auth"
 
 import React, {
   createContext,
@@ -39,6 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [authData, setAuthData] = useState(null)
 
   useLayoutEffect(() => {
     // Check if user is already logged in from localStorage
@@ -63,8 +65,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           },
         });
       }
-      await signInWithPhoneNumber(auth, "+2347065400423", window.recaptchaVerifier).then((result) => {
+      await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier).then((result) => {
         console.log("result: ", result);
+        setAuthData(result);
         showSuccess("Verification code sent", "Please check your phone");
       }).catch((error) => {
         console.error("Error during sign-in:", error);
@@ -87,6 +90,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // This would normally verify the code with an API
       // For demo, we'll just accept any code and create a mock user
 
+      // using the firebase confirmation result r
+      const confirmed = await authData.confirm(code);
       // Create mock user
       const mockUser: User = {
         id: "user_" + Math.random().toString(36).substr(2, 9),
