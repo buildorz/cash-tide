@@ -1,6 +1,5 @@
 import { showError, showSuccess } from "@/lib/utils";
-import { auth, RecaptchaVerifier, signInWithPhoneNumber } from "@/auth";
-import { ConfirmationResult } from "firebase/auth"
+import { User, useLogin, useLogout, usePrivy } from "@privy-io/react-auth"
 
 import React, {
   createContext,
@@ -10,24 +9,10 @@ import React, {
   useLayoutEffect,
 } from "react";
 
-declare global {
-  interface Window {
-    recaptchaVerifier: RecaptchaVerifier;
-  }
-}
-
-interface User {
-  id: string;
-  phoneNumber: string;
-  email?: string;
-  name?: string;
-  balance: number;
-}
-
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (phoneNumber: string) => Promise<void>;
+  login: () => Promise<void>;
   logout: () => void;
   verifyCode: (code: string) => Promise<boolean>;
 }
@@ -37,10 +22,30 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const { authenticated } = usePrivy();
   const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(authenticated);
   const [isLoading, setIsLoading] = useState(true);
   const [authData, setAuthData] = useState(null)
+
+  const { login: privyLogin } = useLogin({
+    onComplete: (data) => {
+      setUser(data.user);
+      setIsAuthenticated(true);
+      showSuccess(
+        "Login successful",
+        "Welcome to CashTide!",
+      );
+    },
+    onError: (error) => {
+      console.error('Login error:', error);
+      showError(
+        "Error",
+        "Failed to log in",
+      );
+    }
+  });
+  const { logout: privyLogout } = useLogout();
 
   useLayoutEffect(() => {
     // Check if user is already logged in from localStorage
@@ -52,33 +57,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoading(false);
   }, []);
 
-  const login = async (phoneNumber: string) => {
+  const login = async () => {
     try {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          size: 'normal',
-          callback: () => {
-            showSuccess('reCAPTCHA verified');
-          },
-          'expired-callback': () => {
-            showError('reCAPTCHA expired');
-          },
-        });
-      }
-      await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier).then((result) => {
-        console.log("result: ", result);
-        setAuthData(result);
-        showSuccess("Verification code sent", "Please check your phone");
-      }).catch((error) => {
-        console.error("Error during sign-in:", error);
-        showError("Sign-in failed", "Please try again later");
-      });
-      // This would normally make an API call to send a verification code
-      // For demo, we'll just simulate a successful code sending
-      showSuccess(
-        "Verification code sent",
-        `A code has been sent to ${phoneNumber}`
-      );
+      await privyLogin();
     } catch (error) {
       console.error("Login error:", error);
       showError("Login failed", "Please try again later");
@@ -87,23 +68,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const verifyCode = async (code: string): Promise<boolean> => {
     try {
-      // This would normally verify the code with an API
-      // For demo, we'll just accept any code and create a mock user
-
-      // using the firebase confirmation result r
-      const confirmed = await authData.confirm(code);
-      // Create mock user
-      const mockUser: User = {
-        id: "user_" + Math.random().toString(36).substr(2, 9),
-        phoneNumber: "+91XXXXXXXXXX",
-        email: "user@example.com",
-        name: "Demo User",
-        balance: 0.0,
-      };
-
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      localStorage.setItem("user", JSON.stringify(mockUser));
 
       showSuccess("Login successful", "You are now logged in");
 
@@ -116,9 +80,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const logout = () => {
+    privyLogout();
     setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem("user");
     showSuccess("Logged out", "You have been successfully logged out");
   };
 

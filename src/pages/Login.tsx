@@ -21,21 +21,19 @@ const Login: React.FC = () => {
   const [verificationMode, setVerificationMode] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
 
-  const { login, verifyCode, isAuthenticated } = useAuth();
+  const { login, logout, verifyCode, isAuthenticated } = useAuth();
 
   const navigate = useNavigate();
 
   const handleContinue = async () => {
     if (phoneNumber.length < 10) {
       toast("Please enter a valid phone number");
-
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const fullPhoneNumber = countryCode + phoneNumber;
-      await login(fullPhoneNumber);
+      await login();
       setVerificationMode(true);
     } catch (error) {
       console.error("Login error:", error);
@@ -64,7 +62,7 @@ const Login: React.FC = () => {
   };
 
   const handleResendCode = () => {
-    login(phoneNumber);
+    login();
     showError(
       "Code resent",
       "A new verification code has been sent to your phone"
@@ -158,11 +156,10 @@ const Login: React.FC = () => {
                 Resend code
               </button>
             </div>
-          </div>
-          )}
+          </>
+        )}
       </div>
     </div>
-    </div >
   );
 };
 
