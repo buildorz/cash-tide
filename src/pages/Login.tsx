@@ -80,7 +80,7 @@ const Login: React.FC = () => {
       </Link>
 
       <div className="max-w-[1140px] mx-auto h-full flex items-center justify-center flex-col flex-1 ">
-        <Icons.pattern className="w-full absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2" />
+        {/* <Icons.pattern className="w-full absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2" /> */}
 
         {!verificationMode ? (
           <>
@@ -93,7 +93,7 @@ const Login: React.FC = () => {
             </p>
 
             <div className="space-y-6">
-              <PhoneInput
+              {/* <PhoneInput
                 setCountry={setCountryCode}
                 value={phoneNumber}
                 onChange={setPhoneNumber}
@@ -106,7 +106,8 @@ const Login: React.FC = () => {
                 onClick={handleContinue}
               >
                 {isSubmitting ? "Sending code..." : "Continue"}
-              </Button>
+              </Button> */}
+              <Button onClick={login}>Login</Button>
               <div id="recaptcha-container"></div>
             </div>
           </>
