@@ -11,6 +11,7 @@ import { Camera, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useCreateKernel } from "@/hooks/use-create-kernel";
 
 const PersonalInformation: React.FC = () => {
   const { user } = useAuth();
@@ -19,10 +20,12 @@ const PersonalInformation: React.FC = () => {
   const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(false);
 
+  const { address } = useCreateKernel();
+
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
-    phoneNumber: user?.phoneNumber || "",
+    phone: user?.phone || "",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,21 +129,32 @@ const PersonalInformation: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Phone Number</Label>
+                  <Label htmlFor="phone">Phone Number</Label>
                   <Input
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
                     onChange={handleInputChange}
                     placeholder="Enter your phone number"
-                    disabled={!!user?.phoneNumber}
+                    disabled={!!user?.phone}
                   />
-                  {user?.phoneNumber && (
+                  {user?.phone && (
                     <p className="text-xs text-muted-foreground">
                       Phone number cannot be changed
                     </p>
                   )}
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="walletAddress">Wallet Address</Label>
+                  <Input
+                    id="walletAddress"
+                    name="walletAddress"
+                    value={address || "Loading..."}
+                    disabled
+                  />
+                </div>
+
               </div>
 
               <div className="flex justify-end gap-2 pt-4">

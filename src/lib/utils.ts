@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
+import { createPublicClient, http } from "viem";
+import { sepolia } from "viem/chains";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -28,3 +30,8 @@ export function formatNumber(value: number | string) {
     minimumFractionDigits: 2,
   }).format(value);
 }
+
+export const publicClient = createPublicClient({
+  chain: sepolia,
+  transport: http(import.meta.env.VITE_APP_ZERODEV_RPC!),
+});

@@ -15,9 +15,13 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useSmartWalletBalance } from "@/hooks/use-balance";
+import { formatEther } from "viem";
 
 export default function HomePage() {
-  const { balance } = useWallet();
+  // const { balance } = useWallet();
+  const balanceWei = useSmartWalletBalance();
+  const balance = parseFloat(formatEther(balanceWei));
   const navigate = useNavigate();
   const [showBalance, setShowBalance] = useState(true);
 
@@ -79,10 +83,10 @@ export default function HomePage() {
                       className="relative"
                     >
                       <h2 className="text-5xl font-bold mb-1">
-                        {showBalance ? formatNumber(balance) : "••••••"}
+                        {showBalance ? formatNumber(Number(balance)) : "••••••"}
                       </h2>
                       <p className="text-muted-foreground text-xs">
-                        {showBalance ? `${balance} USD` : "USD"}
+                        {showBalance ? `${Number(balance)} USD` : "USD"}
                       </p>
                     </motion.div>
                   </div>

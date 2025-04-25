@@ -7,11 +7,16 @@ import { useWallet } from "@/context/WalletContext";
 import { Plus, ArrowLeft, Send as SendIcon, User2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
+import { formatEther } from "viem";
+import { useSmartWalletBalance } from "@/hooks/use-balance";
+
 type Step = "amount" | "recipient" | "summary";
 
 const Send: React.FC = () => {
   const navigate = useNavigate();
   const { balance, sendMoney } = useWallet();
+  const balanceWei = useSmartWalletBalance();
+  const balanceEth = balanceWei ? parseFloat(formatEther(balanceWei)) : 0;
 
   const [step, setStep] = useState<Step>("amount");
   const [amount, setAmount] = useState("0.00");
@@ -34,7 +39,7 @@ const Send: React.FC = () => {
   };
 
   const handleSend = async () => {
-    const success = await sendMoney(parseFloat(amount), phoneNumber);
+    const success = await sendMoney(parseFloat(amount), "0xdDF57A3d065F74a83Bfa7F3bC1D0461e63d485AF");
     if (success) {
       navigate("/home");
     }
@@ -44,7 +49,7 @@ const Send: React.FC = () => {
     navigate("/add-funds");
   };
 
-  const insufficientFunds = parseFloat(amount) > balance;
+  const insufficientFunds = balanceEth < balance;
 
   const renderStep = () => {
     switch (step) {
@@ -56,7 +61,7 @@ const Send: React.FC = () => {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div className="text-sm text-muted-foreground">
-                Balance: ${balance.toFixed(2)}
+                Balance: ${balanceEth.toFixed(2)}
               </div>
             </div>
             <div className="text-center mb-4">
@@ -90,6 +95,7 @@ const Send: React.FC = () => {
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex-1">
                     <PhoneInput
+                      setCountry={() => { }}
                       value={phoneNumber}
                       onChange={setPhoneNumber}
                       placeholder="Enter phone number"

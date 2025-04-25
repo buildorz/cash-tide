@@ -1,6 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import { showError, showSuccess } from "@/lib/utils";
+import { useCreateKernel } from "@/hooks/use-create-kernel";
+import { parseUnits, formatEther } from "viem";
+import { useWallets } from "@privy-io/react-auth";
+import { useSmartWalletBalance } from "@/hooks/use-balance";
 
 interface Transaction {
   id: string;
@@ -29,22 +33,28 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const balanceWei = useSmartWalletBalance();
   const [balance, setBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const { user } = useAuth();
+  const { kernelClient, address } = useCreateKernel();
+  const { wallets } = useWallets();
+
+  useEffect(() => {
+    if (balanceWei) {
+      const ethBalance = parseFloat(formatEther(balanceWei));
+      setBalance(ethBalance);
+    }
+  }, [balanceWei]);
 
   useEffect(() => {
     if (user) {
-      // Load wallet data from localStorage
-      const storedBalance = localStorage.getItem("wallet_balance");
+      const embedded = wallets.find(w => w.walletClientType === 'privy');
+      if (!embedded) return;
+  
       const storedTransactions = localStorage.getItem("wallet_transactions");
 
-      if (storedBalance) {
-        setBalance(parseFloat(storedBalance));
-      }
-
       if (storedTransactions) {
-        // Convert string dates back to Date objects
         const parsedTransactions = JSON.parse(storedTransactions).map((tx) => ({
           ...tx,
           timestamp: new Date(tx.timestamp),
@@ -52,21 +62,21 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
         setTransactions(parsedTransactions);
       }
     }
-  }, [user]);
+  }, [user, wallets, address]);
 
-  // Save wallet data to localStorage whenever it changes
   useEffect(() => {
     if (user) {
-      localStorage.setItem("wallet_balance", balance.toString());
       localStorage.setItem("wallet_transactions", JSON.stringify(transactions));
     }
-  }, [balance, transactions, user]);
+  }, [transactions, user]);
 
   const sendMoney = async (
     amount: number,
     recipient: string
   ): Promise<boolean> => {
     try {
+      if (!kernelClient) throw new Error('Wallet not ready');
+
       if (amount <= 0) {
         throw new Error("Amount must be greater than 0");
       }
@@ -75,23 +85,28 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("Insufficient funds");
       }
 
-      // Create transaction
+      const valueWei = parseUnits(amount.toString(), 18);
+      const txHash = await kernelClient.sendTransaction({
+        to: recipient,
+        value: valueWei,
+        data: "0x",
+      });
+      console.log("Sponsored txHash:", txHash);
+
       const transaction: Transaction = {
-        id: "tx_" + Math.random().toString(36).substr(2, 9),
+        id: txHash,
         type: "send",
         amount,
         recipient,
         status: "completed",
         timestamp: new Date(),
       };
-
-      // Update balance and add transaction
-      setBalance((prev) => prev - amount);
       setTransactions((prev) => [transaction, ...prev]);
-
       showSuccess(
         "Money sent!",
-        `You have sent $${amount.toFixed(2)} to ${recipient}`
+        `Transaction ${txHash} confirmed — you sent $${amount.toFixed(
+          2
+        )} to ${recipient}`
       );
 
       return true;
@@ -111,7 +126,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("Amount must be greater than 0");
       }
 
-      // Create transaction
       const transaction: Transaction = {
         id: "tx_" + Math.random().toString(36).substr(2, 9),
         type: "request",
@@ -121,7 +135,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
         timestamp: new Date(),
       };
 
-      // Add transaction
       setTransactions((prev) => [transaction, ...prev]);
 
       showSuccess(
@@ -149,7 +162,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("Amount must be greater than 0");
       }
 
-      // Create transaction
       const transaction: Transaction = {
         id: "tx_" + Math.random().toString(36).substr(2, 9),
         type: "deposit",
@@ -158,16 +170,14 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
         timestamp: new Date(),
       };
 
-      // Update balance and add transaction
-      setBalance((prev) => prev + amount);
       setTransactions((prev) => [transaction, ...prev]);
 
       const methodName =
         method === "card"
           ? "Card"
           : method === "apple_pay"
-          ? "Apple Pay"
-          : "Google Pay";
+            ? "Apple Pay"
+            : "Google Pay";
 
       showSuccess(
         "Funds added!",
@@ -202,6 +212,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useWallet = () => {
   const context = useContext(WalletContext);
   if (context === undefined) {
