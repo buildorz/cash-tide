@@ -4,7 +4,7 @@ import AmountInput from "@/components/AmountInput";
 import PhoneInput from "@/components/PhoneInput";
 import Button from "@/components/Button";
 import { useWallet } from "@/context/WalletContext";
-import { Plus, ArrowLeft, Send as SendIcon, User2 } from "lucide-react";
+import { Plus, ArrowLeft, Send as SendIcon, User2, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 type Step = "amount" | "recipient" | "summary";
@@ -16,7 +16,8 @@ const Send: React.FC = () => {
   const [step, setStep] = useState<Step>("amount");
   const [amount, setAmount] = useState("0.00");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [countryCode, setCountryCode] = useState("+91");
+  const [, setCountryCode] = useState("+91");
+  const [isLoading, setIsLoading] = useState(false);
 
   const enteredAmount = parseFloat(amount);
   const insufficientFunds = enteredAmount > balance;
@@ -43,16 +44,35 @@ const Send: React.FC = () => {
   };
 
   const handleSend = async () => {
-    console.log("Sending money...", phoneNumber);
-    const success = await sendMoney(enteredAmount, phoneNumber);
-    if (success) {
-      navigate("/home");
+    try {
+      setIsLoading(true);
+      const success = await sendMoney(enteredAmount, phoneNumber);
+      if (success) {
+        navigate("/home");
+      }
+    } catch (error) {
+      console.error("Error sending money:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleAddFunds = () => {
     navigate("/add-funds");
   };
+
+  // Loading overlay component
+  const LoadingOverlay = () => (
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-card p-6 rounded-lg shadow-lg text-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
+        <h3 className="text-lg font-medium mb-2">Processing Payment</h3>
+        <p className="text-muted-foreground">
+          Please wait while we send ${amount} to {phoneNumber}
+        </p>
+      </div>
+    </div>
+  );
 
   const renderStep = () => {
     switch (step) {
@@ -160,7 +180,8 @@ const Send: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto h-[calc(100vh-4rem)] flex flex-col ">
+    <div className="max-w-md mx-auto h-[calc(100vh-4rem)] flex flex-col">
+      {isLoading && <LoadingOverlay />}
       <div>{renderStep()}</div>
       <div className="py-4">
         {step === "summary" ? (
@@ -174,9 +195,18 @@ const Send: React.FC = () => {
               Add funds
             </Button>
           ) : (
-            <Button onClick={handleSend} className="w-full" size="lg">
-              <SendIcon className="mr-2 h-5 w-5" />
-              Send Money
+            <Button 
+              onClick={handleSend} 
+              className="w-full" 
+              size="lg"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <SendIcon className="mr-2 h-5 w-5" />
+              )}
+              {isLoading ? "Processing..." : "Send Money"}
             </Button>
           )
         ) : (

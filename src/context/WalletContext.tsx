@@ -123,7 +123,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
       setTransactions((prev) => [transaction, ...prev]);
       showSuccess(
         "Money sent!",
-        `Transaction ${txHash} confirmed — you sent $${amount.toFixed(
+        `You sent $${amount.toFixed(
           2
         )} to ${recipient}`
       );
