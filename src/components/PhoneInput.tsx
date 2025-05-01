@@ -27,13 +27,23 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   }) => {
     setSelectedCountry(country);
     setCountry(country.dialCode);
+    // immediately emit a new combined value if there's already a phone number
+    if (value) {
+      onChange(`${country.dialCode} ${value}`);
+    }
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow digits
-    const phoneNumber = e.target.value.replace(/\D/g, "");
-    console.log("no: ", phoneNumber);
-    onChange(phoneNumber);
+    // strip non-digits
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+    // combine with dial code, e.g. "+91 7012345678"
+    const localFormatted =
+      digits.length <= 5
+        ? digits
+        : `${digits.slice(0, 5)} ${digits.slice(5)}`;
+    const combined = `${selectedCountry.dialCode} ${localFormatted}`;
+    onChange(combined);
+    console.log("Phone number changed:", combined);
   };
 
   return (
@@ -42,7 +52,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
         htmlFor="phone-input"
         className="text-sm font-medium text-[#0E121B]"
       >
-        Phone Number <span className="text-[#335CFF] tx">*</span>
+        Phone Number <span className="text-[#335CFF]">*</span>
       </label>
 
       <div className="flex items-stretch w-full gap-1">
@@ -52,8 +62,9 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           className="shrink-0"
         />
         <input
+          id="phone-input"
           type="tel"
-          value={value}
+          value={value.startsWith(selectedCountry.dialCode) ? value.slice(selectedCountry.dialCode.length + 1) : value}
           onChange={handlePhoneChange}
           placeholder={placeholder}
           className="flex-1 px-4 py-2 rounded-md bg-white border border-[#E1E4EA] text-base placeholder:text-sm font-normal focus:outline-none w-full"

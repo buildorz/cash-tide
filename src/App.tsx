@@ -114,7 +114,8 @@ const App = () => (
           loginMethods: ['telegram', 'sms'],
           // Create embedded wallets for users who don't have a wallet
           embeddedWallets: {
-            createOnLogin: 'users-without-wallets'
+            showWalletUIs: false,
+            createOnLogin: 'all-users'
           }
         }}
       >
