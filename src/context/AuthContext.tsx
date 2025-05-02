@@ -1,16 +1,30 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { createContext, useState, useContext, useLayoutEffect } from "react";
+import { User, useLogin, useLogout, usePrivy } from "@privy-io/react-auth";
 import { showError, showSuccess } from "@/lib/utils";
-import { User, useLogin, useLogout, usePrivy } from "@privy-io/react-auth"
+import { axiosInstance } from "@/utils/axios";
 
-import React, {
-  createContext,
-  useState,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-} from "react";
+interface DbUser {
+  id: string;
+  name?: string | null;
+  phoneNumber: string;
+  walletAddress: string;
+  createdAt: string;
+  status: string;
+}
+
+export interface AppUser extends User {
+  privyDID: string;
+  dbId: string;
+  name: string;
+  phone: { number: string };
+  wallet: { address: string } & Omit<User["wallet"], "address">;
+  createdAt: Date;
+  status: string;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
   isAuthenticated: boolean;
   login: () => Promise<void>;
   logout: () => void;
@@ -19,39 +33,74 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { authenticated } = usePrivy();
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(authenticated);
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(authenticated);
   const [isLoading, setIsLoading] = useState(true);
-  const [authData, setAuthData] = useState(null)
 
   const { login: privyLogin } = useLogin({
-    onComplete: (data) => {
-      setUser(data.user);
-      setIsAuthenticated(true);
-      showSuccess(
-        "Login successful",
-        "Welcome to CashTide!",
-      );
+    onComplete: async ({ user: privyUser }) => {
+      try {
+        const privyDID = privyUser.id;
+        const walletAddress = privyUser.wallet?.address;
+        const phoneNumber = privyUser.phone?.number;
+        if (!walletAddress || !phoneNumber) {
+          throw new Error("Missing wallet or phone on Privy user");
+        }
+
+        let db: DbUser;
+        try {
+          const getResp = await axiosInstance.get<DbUser>(`/api/user/get/${privyDID}`);
+          db = getResp.data;
+        } catch (err: any) {
+          if (err.response?.status === 404 || err.response?.data?.message === "User not found") {
+            const createResp = await axiosInstance.post<DbUser>("/api/user/register", {
+              privyDID,
+              walletAddress,
+              phoneNumber,
+            });
+            db = createResp.data;
+          } else {
+            throw err;
+          }
+        }
+
+        const appUser: AppUser = {
+          ...privyUser,
+          privyDID,
+          dbId: db.id,
+          name: db.name,
+          phone: { number: db.phoneNumber },
+          wallet: { ...privyUser.wallet!, address: db.walletAddress },
+          createdAt: new Date(db.createdAt),
+          status: db.status,
+        };
+
+        setUser(appUser);
+        setIsAuthenticated(true);
+        localStorage.setItem("user", JSON.stringify(appUser));
+        showSuccess(
+          "Login successful",
+          `Welcome back${appUser.name ? appUser.name : ""}!`
+        );
+      } catch (err: any) {
+        console.error("Auth sync error:", err);
+        showError("Authentication Error", err.message || "Unable to sync with backend");
+      }
     },
     onError: (error) => {
-      console.error('Login error:', error);
-      showError(
-        "Error",
-        "Failed to log in",
-      );
-    }
+      console.error("Privy login error:", error);
+      showError("Login failed", "Failed to authenticate");
+    },
   });
+
   const { logout: privyLogout } = useLogout();
 
   useLayoutEffect(() => {
-    // Check if user is already logged in from localStorage
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      setUser(JSON.parse(stored));
       setIsAuthenticated(true);
     }
     setIsLoading(false);
@@ -67,42 +116,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const verifyCode = async (code: string): Promise<boolean> => {
-    try {
-
-      showSuccess("Login successful", "You are now logged in");
-
-      return true;
-    } catch (error) {
-      console.error("Verification error:", error);
-      showError("Verification failed", "Invalid verification code");
-      return false;
-    }
+    showSuccess("Verification successful", "You are now logged in");
+    return true;
   };
 
   const logout = () => {
     privyLogout();
     setUser(null);
     setIsAuthenticated(false);
+    localStorage.removeItem("user");
     showSuccess("Logged out", "You have been successfully logged out");
   };
 
-  if (isLoading) {
-    return null;
-  }
+  if (isLoading) return null;
 
   return (
-    <AuthContext.Provider
-      value={{ user, isAuthenticated, login, logout, verifyCode }}
-    >
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, verifyCode }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };

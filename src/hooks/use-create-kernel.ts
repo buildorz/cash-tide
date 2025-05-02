@@ -1,75 +1,125 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react';
 import { useWallets } from '@privy-io/react-auth';
-import { http } from 'viem';
+import { createPublicClient, createWalletClient, custom, Hex, http, PublicClient } from 'viem';
 import { signerToEcdsaValidator } from '@zerodev/ecdsa-validator';
 import {
-    createKernelAccount,
-    createKernelAccountClient,
-    createZeroDevPaymasterClient,
+  createKernelAccount,
+  createKernelAccountClient,
+  createZeroDevPaymasterClient,
 } from '@zerodev/sdk';
-import { KERNEL_V3_1, getEntryPoint } from "@zerodev/sdk/constants"
+import { useSignAuthorization } from '@privy-io/react-auth';
+import { KERNEL_V3_3_BETA, getEntryPoint, KernelVersionToAddressesMap } from '@zerodev/sdk/constants';
 import { sepolia } from 'viem/chains';
-import { publicClient } from '@/lib/utils';
+
+const chain = sepolia;
+const kernelVersion = KERNEL_V3_3_BETA;
+const bundlerRpc = import.meta.env.VITE_APP_ZERODEV_RPC as string;
+const paymasterRpc = import.meta.env.VITE_APP_ZERODEV_RPC as string;
+const entryPoint = getEntryPoint("0.7");
+
+const publicClient = createPublicClient({
+  chain,
+  transport: http(),
+}) as any;
 
 export const useCreateKernel = () => {
-    const { wallets, ready: walletsReady } = useWallets();
-    const [kernelData, setKernelData] = useState<{
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        kernelClient: any;
-        address: string | null;
-      }>({
-        kernelClient: null,
-        address: null,
-    });
+  const { wallets, ready: walletsReady } = useWallets();
+  const [kernelData, setKernelData] = useState<{
+    kernelClient: any;
+    address: string | null;
+    loading: boolean;
+    error: string | null;
+  }>({
+    kernelClient: null,
+    address: null,
+    loading: true,
+    error: null,
+  });
 
-    const kernelVersion = KERNEL_V3_1
-    const entryPoint = getEntryPoint("0.7")
+  const { signAuthorization } = useSignAuthorization();
 
-    useEffect(() => {
-        if (!walletsReady) return;
+  useEffect(() => {
+    let isMounted = true;
+    let retryCount = 0;
+    const maxRetries = 3;
+    const retryDelay = 2000;
+
+    const init = async () => {
+      if (!walletsReady) return;
+
+      try {
         const embedded = wallets.find(w => w.walletClientType === 'privy');
-        if (!embedded) return;
+        if (!embedded) {
+          if (isMounted) {
+            setKernelData(prev => ({
+              ...prev,
+              loading: false,
+              error: 'No embedded Privy wallet found',
+            }));
+          }
+          return;
+        }
 
-        const init = async () => {
-            const privyProvider = await embedded.getEthereumProvider();
+        const walletClient = createWalletClient({
+          account: embedded.address as Hex,
+          chain,
+          transport: custom(await embedded.getEthereumProvider()),
+        });
 
-            const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
-                signer: privyProvider,
-                entryPoint: getEntryPoint("0.7"),
-                kernelVersion: KERNEL_V3_1
-            })
+        const authorization = await signAuthorization({
+          contractAddress: KernelVersionToAddressesMap[kernelVersion].accountImplementationAddress,
+          chainId: chain.id,
+        });
 
-            const kernelAccount = await createKernelAccount(publicClient, {
-                kernelVersion,
-                entryPoint,
-                plugins: {
-                    sudo: ecdsaValidator,
-                },
-            });
+        const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
+          signer: walletClient,
+          entryPoint,
+          kernelVersion,
+        });
 
-            const paymasterClient = createZeroDevPaymasterClient({
-                chain: sepolia,
-                transport: http(import.meta.env.VITE_APP_ZERODEV_RPC!),
-              })
+        const kernelAccount = await createKernelAccount(publicClient, {
+          plugins: { sudo: ecdsaValidator },
+          entryPoint,
+          kernelVersion,
+          address: walletClient.account.address,
+          eip7702Auth: authorization,
+        });
 
-            const kernelClient = createKernelAccountClient({
-                account: kernelAccount,
-                chain: sepolia,
-                bundlerTransport: http(import.meta.env.VITE_APP_ZERODEV_RPC!),
-                paymaster: {
-                    getPaymasterData(userOperation) {
-                        return paymasterClient.sponsorUserOperation({ userOperation })
-                    }
-                },
-            });
+        const paymasterClient = createZeroDevPaymasterClient({
+          chain,
+          transport: http(paymasterRpc),
+        });
 
-            const address = await kernelClient.account.getAddress();
+        const kernelClient = createKernelAccountClient({
+          account: kernelAccount,
+          chain,
+          bundlerTransport: http(bundlerRpc),
+          paymaster: paymasterClient,
+        });
 
-            setKernelData({ kernelClient, address });
-        };
+        const address = await kernelClient.account.getAddress();
 
-        init().catch(console.error);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [walletsReady, wallets]);
-    return kernelData;
+        if (isMounted) {
+          setKernelData({ kernelClient, address, loading: false, error: null });
+        }
+      } catch (error: any) {
+        console.error('Error initializing kernel client:', error);
+        if (retryCount < maxRetries) {
+          retryCount++;
+          setTimeout(() => isMounted && init(), retryDelay);
+          return;
+        }
+        if (isMounted) {
+          setKernelData(prev => ({ ...prev, loading: false, error: error.message || 'Initialization failed' }));
+        }
+      }
+    };
+
+    init();
+    return () => { isMounted = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walletsReady, wallets.length]);
+
+  return kernelData;
 };

@@ -5,6 +5,7 @@ import { useCreateKernel } from "@/hooks/use-create-kernel";
 import { parseUnits, formatEther } from "viem";
 import { useWallets } from "@privy-io/react-auth";
 import { useSmartWalletBalance } from "@/hooks/use-balance";
+import { axiosInstance } from "@/utils/axios";
 
 interface Transaction {
   id: string;
@@ -51,7 +52,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
     if (user) {
       const embedded = wallets.find(w => w.walletClientType === 'privy');
       if (!embedded) return;
-  
+
       const storedTransactions = localStorage.getItem("wallet_transactions");
 
       if (storedTransactions) {
@@ -76,18 +77,36 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
   ): Promise<boolean> => {
     try {
       if (!kernelClient) throw new Error('Wallet not ready');
+      if (amount <= 0) throw new Error("Amount must be greater than 0");
+      if (amount > balance) throw new Error("Insufficient funds");
 
-      if (amount <= 0) {
-        throw new Error("Amount must be greater than 0");
-      }
-
-      if (amount > balance) {
-        throw new Error("Insufficient funds");
+      type DbUser = { 
+        id: string; 
+        walletAddress: string 
+      };
+      let dbUser: DbUser;
+      try {
+        const resp = await axiosInstance.get<DbUser>(`/api/user/phone/${encodeURIComponent(recipient)}`);
+        dbUser = resp.data;
+      } catch (e) {
+        if (e.response?.status === 404 || e.response?.data.message === "User not found") {
+          const createResp = await axiosInstance.post("/api/user/pregenerate", {
+            phoneNumber: recipient,
+          });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const data = createResp.data as any;
+          console.log("Pregenerated user:", data);
+          const walletAddr = data.walletAddress;
+          dbUser = { id: data.id, walletAddress: walletAddr };
+        } else {
+          throw e;
+        }
       }
 
       const valueWei = parseUnits(amount.toString(), 18);
+      console.log("Sending money to:", dbUser.walletAddress);
       const txHash = await kernelClient.sendTransaction({
-        to: recipient,
+        to: dbUser.walletAddress,
         value: valueWei,
         data: "0x",
       });
@@ -104,7 +123,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
       setTransactions((prev) => [transaction, ...prev]);
       showSuccess(
         "Money sent!",
-        `Transaction ${txHash} confirmed — you sent $${amount.toFixed(
+        `You sent $${amount.toFixed(
           2
         )} to ${recipient}`
       );

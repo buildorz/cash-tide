@@ -4,26 +4,31 @@ import AmountInput from "@/components/AmountInput";
 import PhoneInput from "@/components/PhoneInput";
 import Button from "@/components/Button";
 import { useWallet } from "@/context/WalletContext";
-import { Plus, ArrowLeft, Send as SendIcon, User2 } from "lucide-react";
+import { Plus, ArrowLeft, Send as SendIcon, User2, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-
-import { formatEther } from "viem";
-import { useSmartWalletBalance } from "@/hooks/use-balance";
 
 type Step = "amount" | "recipient" | "summary";
 
 const Send: React.FC = () => {
   const navigate = useNavigate();
   const { balance, sendMoney } = useWallet();
-  const balanceWei = useSmartWalletBalance();
-  const balanceEth = balanceWei ? parseFloat(formatEther(balanceWei)) : 0;
 
   const [step, setStep] = useState<Step>("amount");
   const [amount, setAmount] = useState("0.00");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [, setCountryCode] = useState("+91");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const enteredAmount = parseFloat(amount);
+  const insufficientFunds = enteredAmount > balance;
+
+  const isContinueDisabled =
+    enteredAmount <= 0 ||
+    insufficientFunds ||
+    (step === "recipient" && phoneNumber.length < 10);
 
   const handleContinue = () => {
-    if (step === "amount" && parseFloat(amount) > 0) {
+    if (step === "amount" && enteredAmount > 0 && !insufficientFunds) {
       setStep("recipient");
     } else if (step === "recipient" && phoneNumber.length >= 10) {
       setStep("summary");
@@ -39,9 +44,16 @@ const Send: React.FC = () => {
   };
 
   const handleSend = async () => {
-    const success = await sendMoney(parseFloat(amount), "0xdDF57A3d065F74a83Bfa7F3bC1D0461e63d485AF");
-    if (success) {
-      navigate("/home");
+    try {
+      setIsLoading(true);
+      const success = await sendMoney(enteredAmount, phoneNumber);
+      if (success) {
+        navigate("/home");
+      }
+    } catch (error) {
+      console.error("Error sending money:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -49,7 +61,18 @@ const Send: React.FC = () => {
     navigate("/add-funds");
   };
 
-  const insufficientFunds = balanceEth < balance;
+  // Loading overlay component
+  const LoadingOverlay = () => (
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-card p-6 rounded-lg shadow-lg text-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
+        <h3 className="text-lg font-medium mb-2">Processing Payment</h3>
+        <p className="text-muted-foreground">
+          Please wait while we send ${amount} to {phoneNumber}
+        </p>
+      </div>
+    </div>
+  );
 
   const renderStep = () => {
     switch (step) {
@@ -61,7 +84,7 @@ const Send: React.FC = () => {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div className="text-sm text-muted-foreground">
-                Balance: ${balanceEth.toFixed(2)}
+                Balance: ${balance.toFixed(2)}
               </div>
             </div>
             <div className="text-center mb-4">
@@ -69,6 +92,11 @@ const Send: React.FC = () => {
               <p className="text-muted-foreground">Enter the amount to send</p>
             </div>
             <AmountInput value={amount} onChange={setAmount} />
+            {insufficientFunds && (
+              <p className="text-sm text-red-500">
+                You only have ${balance.toFixed(2)} available.
+              </p>
+            )}
           </div>
         );
 
@@ -90,18 +118,13 @@ const Send: React.FC = () => {
                   Enter the recipient's phone number
                 </p>
               </div>
-
               <Card className="p-2">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex-1">
-                    <PhoneInput
-                      setCountry={() => { }}
-                      value={phoneNumber}
-                      onChange={setPhoneNumber}
-                      placeholder="Enter phone number"
-                    />
-                  </div>
-                </div>
+                <PhoneInput
+                  setCountry={setCountryCode}
+                  value={phoneNumber}
+                  onChange={setPhoneNumber}
+                  placeholder="Enter phone number"
+                />
               </Card>
             </div>
           </div>
@@ -137,7 +160,7 @@ const Send: React.FC = () => {
                     </div>
                     <div>
                       <div className="text-sm font-medium">
-                        +91 {phoneNumber}
+                        {phoneNumber}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         Mobile Number
@@ -157,9 +180,9 @@ const Send: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto h-[calc(100vh-4rem)] flex flex-col ">
-      <div className="">{renderStep()}</div>
-
+    <div className="max-w-md mx-auto h-[calc(100vh-4rem)] flex flex-col">
+      {isLoading && <LoadingOverlay />}
+      <div>{renderStep()}</div>
       <div className="py-4">
         {step === "summary" ? (
           insufficientFunds ? (
@@ -172,20 +195,28 @@ const Send: React.FC = () => {
               Add funds
             </Button>
           ) : (
-            <Button onClick={handleSend} className="w-full" size="lg">
-              <SendIcon className="mr-2 h-5 w-5" />
-              Send Money
+            <Button 
+              onClick={handleSend} 
+              className="w-full" 
+              size="lg"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <SendIcon className="mr-2 h-5 w-5" />
+              )}
+              {isLoading ? "Processing..." : "Send Money"}
             </Button>
           )
         ) : (
           <Button
             onClick={handleContinue}
-            className="w-full"
             size="lg"
-            disabled={
-              (step === "amount" && parseFloat(amount) <= 0) ||
-              (step === "recipient" && phoneNumber.length < 10)
-            }
+            disabled={isContinueDisabled}
+            className={`w-full transition-opacity duration-150 ${
+              isContinueDisabled ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
             Continue
           </Button>
