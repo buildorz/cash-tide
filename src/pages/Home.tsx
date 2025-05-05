@@ -16,12 +16,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useSmartWalletBalance } from "@/hooks/use-balance";
-import { formatEther } from "viem";
+import { formatUnits } from "viem";
 
 export default function HomePage() {
   // const { balance } = useWallet();
   const balanceWei = useSmartWalletBalance();
-  const balance = parseFloat(formatEther(balanceWei));
+  const balance = parseFloat(formatUnits(balanceWei, 6));
   const navigate = useNavigate();
   const [showBalance, setShowBalance] = useState(true);
 
