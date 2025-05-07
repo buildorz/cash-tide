@@ -54,25 +54,25 @@ const Settings: React.FC = () => {
         },
       ],
     },
-    {
-      title: "Security & Privacy",
-      items: [
-        {
-          icon: <Shield size={20} />,
-          title: "Security Settings",
-          description: "Password and authentication",
-          badge: "Enhanced",
-          path: "/settings/security/security-settings",
-        },
-        {
-          icon: <Bell size={20} />,
-          title: "Notifications",
-          description: "Manage your alerts",
-          badge: "All Active",
-          path: "/settings/security/notifications",
-        },
-      ],
-    },
+    // {
+    //   title: "Security & Privacy",
+    //   items: [
+    //     {
+    //       icon: <Shield size={20} />,
+    //       title: "Security Settings",
+    //       description: "Password and authentication",
+    //       badge: "Enhanced",
+    //       path: "/settings/security/security-settings",
+    //     },
+    //     {
+    //       icon: <Bell size={20} />,
+    //       title: "Notifications",
+    //       description: "Manage your alerts",
+    //       badge: "All Active",
+    //       path: "/settings/security/notifications",
+    //     },
+    //   ],
+    // },
     {
       title: "Support",
       items: [
@@ -92,7 +92,7 @@ const Settings: React.FC = () => {
 
       <div className="space-y-4 sm:space-y-6 md:space-y-8 ">
         {/* Profile Card */}
-        <Card className="p-3 sm:p-4 md:p-6 relative overflow-hidden">
+        {/* <Card className="p-3 sm:p-4 md:p-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 left-0 h-12 sm:h-16 md:h-20 bg-gradient-to-r from-primary/10 to-primary/5" />
 
           <div className="relative flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
@@ -124,7 +124,7 @@ const Settings: React.FC = () => {
               </Badge>
             </div>
           </div>
-        </Card>
+        </Card> */}
 
         {/* Settings Groups */}
         {settingsGroups.map((group, index) => (

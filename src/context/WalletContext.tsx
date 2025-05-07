@@ -2,19 +2,19 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import { showError, showSuccess } from "@/lib/utils";
 import { useCreateKernel } from "@/hooks/use-create-kernel";
-import { parseUnits, formatEther } from "viem";
-import { useWallets } from "@privy-io/react-auth";
+import { parseUnits, formatUnits, erc20Abi, encodeFunctionData } from "viem";
+import { useWallets, useFundWallet } from "@privy-io/react-auth";
 import { useSmartWalletBalance } from "@/hooks/use-balance";
 import { axiosInstance } from "@/utils/axios";
+import { USDC_ADDRESS } from "@/utils/constants";
 
 interface Transaction {
-  id: string;
+  txhash: string;
   type: "send" | "receive" | "request" | "deposit";
   amount: number;
   recipient?: string;
   sender?: string;
   status: "completed" | "pending" | "failed";
-  timestamp: Date;
 }
 
 interface WalletContextType {
@@ -29,6 +29,8 @@ interface WalletContextType {
   pendingRequests: Transaction[];
 }
 
+type FundingMethod = 'card' | 'apple_pay' | 'google_pay';
+
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -40,10 +42,11 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
   const { user } = useAuth();
   const { kernelClient, address } = useCreateKernel();
   const { wallets } = useWallets();
+  const { fundWallet } = useFundWallet();
 
   useEffect(() => {
     if (balanceWei) {
-      const ethBalance = parseFloat(formatEther(balanceWei));
+      const ethBalance = parseFloat(formatUnits(balanceWei, 6));
       setBalance(ethBalance);
     }
   }, [balanceWei]);
@@ -77,11 +80,12 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
   ): Promise<boolean> => {
     try {
       if (!kernelClient) throw new Error('Wallet not ready');
+      console.log("kernel client`", kernelClient);
       if (amount <= 0) throw new Error("Amount must be greater than 0");
       if (amount > balance) throw new Error("Insufficient funds");
 
       type DbUser = { 
-        id: string; 
+        id: string;
         walletAddress: string 
       };
       let dbUser: DbUser;
@@ -95,7 +99,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
           });
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const data = createResp.data as any;
-          console.log("Pregenerated user:", data);
           const walletAddr = data.walletAddress;
           dbUser = { id: data.id, walletAddress: walletAddr };
         } else {
@@ -103,23 +106,39 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
 
-      const valueWei = parseUnits(amount.toString(), 18);
-      console.log("Sending money to:", dbUser.walletAddress);
+      const data = encodeFunctionData({
+        abi: erc20Abi,
+        functionName: "transfer",
+        args: [
+          dbUser.walletAddress as `0x${string}`, 
+          parseUnits(amount.toString(), 6)
+        ],
+      })
+
       const txHash = await kernelClient.sendTransaction({
-        to: dbUser.walletAddress,
-        value: valueWei,
-        data: "0x",
+        to: USDC_ADDRESS,
+        data: data
       });
-      console.log("Sponsored txHash:", txHash);
 
       const transaction: Transaction = {
-        id: txHash,
+        txhash: txHash,
         type: "send",
         amount,
-        recipient,
-        status: "completed",
-        timestamp: new Date(),
+        sender: address,
+        recipient: dbUser.walletAddress,
+        status: "completed"
       };
+      console.log("transaction", transaction);
+
+      await axiosInstance.post("/api/transaction", {
+        txhash: txHash,
+        senderAddress: address,
+        receiverAddress: dbUser.walletAddress,
+        amount,
+        transactionType: "SEND",
+        transactionStatus: "COMPLETED",
+      });
+
       setTransactions((prev) => [transaction, ...prev]);
       showSuccess(
         "Money sent!",
@@ -146,12 +165,11 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       const transaction: Transaction = {
-        id: "tx_" + Math.random().toString(36).substr(2, 9),
+        txhash: "tx_" + Math.random().toString(36).substr(2, 9),
         type: "request",
         amount,
         recipient: from,
-        status: "pending",
-        timestamp: new Date(),
+        status: "pending"
       };
 
       setTransactions((prev) => [transaction, ...prev]);
@@ -172,44 +190,41 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const addFunds = async (
-    amount: number,
-    method: "card" | "apple_pay" | "google_pay"
-  ): Promise<boolean> => {
+  const addFunds = async (amount: number, method: FundingMethod): Promise<boolean> => {
+    if (!address) {
+      console.error('No wallet address found for funding.');
+      return false;
+    }
     try {
-      if (amount <= 0) {
-        throw new Error("Amount must be greater than 0");
+      let defaultFundingMethod: 'card' | 'exchange' | 'wallet' | 'manual';
+      switch (method) {
+        case 'card':
+        case 'apple_pay':
+        case 'google_pay':
+          defaultFundingMethod = 'card';
+          break;
+        default:
+          defaultFundingMethod = 'card';
       }
+      await fundWallet(address, {
+        amount: amount.toString(),
+        defaultFundingMethod,
+      });
 
-      const transaction: Transaction = {
-        id: "tx_" + Math.random().toString(36).substr(2, 9),
-        type: "deposit",
+      const tx = {
+        txhash: `0x${Math.floor(Math.random() * 1e16).toString(16)}`,
         amount,
-        status: "completed",
-        timestamp: new Date(),
+        method,
+        status: 'success',
       };
-
-      setTransactions((prev) => [transaction, ...prev]);
-
-      const methodName =
-        method === "card"
-          ? "Card"
-          : method === "apple_pay"
-            ? "Apple Pay"
-            : "Google Pay";
-
-      showSuccess(
-        "Funds added!",
-        `$${amount.toFixed(2)} added to your wallet via ${methodName}`
-      );
-
+      console.log('Transaction:', tx);
       return true;
     } catch (error) {
-      console.error("Add funds error:", error);
-      showError("Add funds failed", error.message || "Failed to add funds");
+      console.error('addFunds error:', error);
       return false;
     }
   };
+
 
   const pendingRequests = transactions.filter(
     (tx) => tx.type === "request" && tx.status === "pending"
