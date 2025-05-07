@@ -278,7 +278,7 @@ const HelpCenter: React.FC = () => {
         </motion.div>
 
         {/* Help Guides */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
@@ -327,7 +327,7 @@ const HelpCenter: React.FC = () => {
               </p>
             </Card>
           </div>
-        </motion.div>
+        </motion.div> */}
       </div>
     </div>
   );

@@ -4,6 +4,8 @@ import AmountInput from "@/components/AmountInput";
 import PhoneInput from "@/components/PhoneInput";
 import Button from "@/components/Button";
 import { useWallet } from "@/context/WalletContext";
+import { useSmartWalletBalance } from "@/hooks/use-balance";
+import { formatUnits } from "viem";
 import { Plus, ArrowLeft, Send as SendIcon, User2, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
@@ -11,7 +13,9 @@ type Step = "amount" | "recipient" | "summary";
 
 const Send: React.FC = () => {
   const navigate = useNavigate();
-  const { balance, sendMoney } = useWallet();
+  const balanceWei = useSmartWalletBalance();
+  const balance = parseFloat(formatUnits(balanceWei, 6));
+  const { sendMoney } = useWallet();
 
   const [step, setStep] = useState<Step>("amount");
   const [amount, setAmount] = useState("0.00");
@@ -61,7 +65,6 @@ const Send: React.FC = () => {
     navigate("/add-funds");
   };
 
-  // Loading overlay component
   const LoadingOverlay = () => (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-card p-6 rounded-lg shadow-lg text-center">

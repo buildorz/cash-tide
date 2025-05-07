@@ -63,7 +63,7 @@ const PersonalInformation: React.FC = () => {
           transition={{ delay: 0.1 }}
         >
           {/* Profile Picture Card */}
-          <Card className="p-4 sm:p-5 md:p-6 mb-4 sm:mb-6">
+          {/* <Card className="p-4 sm:p-5 md:p-6 mb-4 sm:mb-6">
             <div className="flex flex-col items-center sm:flex-row sm:items-start gap-4">
               <div className="relative group">
                 <Avatar className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 border-2 border-primary">
@@ -97,7 +97,7 @@ const PersonalInformation: React.FC = () => {
                 </div>
               </div>
             </div>
-          </Card>
+          </Card> */}
 
           {/* Personal Information Form */}
           <Card className="p-4 sm:p-5 md:p-6">
@@ -114,7 +114,7 @@ const PersonalInformation: React.FC = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
@@ -124,7 +124,7 @@ const PersonalInformation: React.FC = () => {
                     onChange={handleInputChange}
                     placeholder="Enter your email address"
                   />
-                </div>
+                </div> */}
 
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
@@ -143,7 +143,7 @@ const PersonalInformation: React.FC = () => {
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="walletAddress">Wallet Address</Label>
                   <div className="relative">
                     <Input
@@ -151,7 +151,7 @@ const PersonalInformation: React.FC = () => {
                       name="walletAddress"
                       value={address || "Loading..."}
                       disabled
-                      className="pr-10"
+                      className="pr-10 "
                     />
                     <Button
                       type="button"
@@ -164,6 +164,11 @@ const PersonalInformation: React.FC = () => {
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
+                  {address && (
+                    <p className="text-xs text-muted-foreground">
+                      We only support USDC on Base. Please do not use any other
+                    </p>
+                  )}
                 </div>
               </div>
 
