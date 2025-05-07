@@ -16,9 +16,10 @@ const AddFunds: React.FC = () => {
   const { addFunds } = useWallet();
 
   const handleAddFunds = async () => {
-    if (parseFloat(amount) <= 0) return;
+    const numericAmount = parseFloat(amount);
+    if (numericAmount <= 0) return;
 
-    const success = await addFunds(parseFloat(amount), selectedMethod);
+    const success = await addFunds(numericAmount, selectedMethod);
     if (success) {
       navigate("/home");
     }
@@ -39,6 +40,7 @@ const AddFunds: React.FC = () => {
               <h3 className="text-lg font-medium mb-4">Payment method</h3>
 
               <div className="space-y-3">
+                {/* Credit/Debit Card */}
                 <button
                   className={`w-full p-4 rounded-lg flex items-center justify-between ${
                     selectedMethod === "card"
@@ -54,12 +56,11 @@ const AddFunds: React.FC = () => {
                     <span>Credit/Debit Card</span>
                   </div>
                   <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center">
-                    {selectedMethod === "card" && (
-                      <div className="w-3 h-3 rounded-full bg-primary"></div>
-                    )}
+                    {selectedMethod === "card" && <div className="w-3 h-3 rounded-full bg-primary" />}
                   </div>
                 </button>
 
+                {/* Apple Pay */}
                 <button
                   className={`w-full p-4 rounded-lg flex items-center justify-between ${
                     selectedMethod === "apple_pay"
@@ -75,12 +76,11 @@ const AddFunds: React.FC = () => {
                     <span>Apple Pay</span>
                   </div>
                   <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center">
-                    {selectedMethod === "apple_pay" && (
-                      <div className="w-3 h-3 rounded-full bg-primary"></div>
-                    )}
+                    {selectedMethod === "apple_pay" && <div className="w-3 h-3 rounded-full bg-primary" />}
                   </div>
                 </button>
 
+                {/* Google Pay */}
                 <button
                   className={`w-full p-4 rounded-lg flex items-center justify-between ${
                     selectedMethod === "google_pay"
@@ -96,9 +96,7 @@ const AddFunds: React.FC = () => {
                     <span>Google Pay</span>
                   </div>
                   <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center">
-                    {selectedMethod === "google_pay" && (
-                      <div className="w-3 h-3 rounded-full bg-primary"></div>
-                    )}
+                    {selectedMethod === "google_pay" && <div className="w-3 h-3 rounded-full bg-primary" />}
                   </div>
                 </button>
               </div>

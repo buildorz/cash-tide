@@ -27,7 +27,7 @@ const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
 
   return (
-    <header className={`flex items-center justify-between p-4 ${className}`}>
+    <header className={`flex items-center justify-between py-4 ${className}`}>
       <div className="flex items-center">
         {showBackButton && (
           <button

@@ -21,21 +21,19 @@ const Login: React.FC = () => {
   const [verificationMode, setVerificationMode] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
 
-  const { login, verifyCode, isAuthenticated } = useAuth();
+  const { login, logout, verifyCode, isAuthenticated } = useAuth();
 
   const navigate = useNavigate();
 
   const handleContinue = async () => {
     if (phoneNumber.length < 10) {
       toast("Please enter a valid phone number");
-
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const fullPhoneNumber = countryCode + phoneNumber;
-      await login(fullPhoneNumber);
+      await login();
       setVerificationMode(true);
     } catch (error) {
       console.error("Login error:", error);
@@ -64,7 +62,7 @@ const Login: React.FC = () => {
   };
 
   const handleResendCode = () => {
-    login(phoneNumber);
+    login();
     showError(
       "Code resent",
       "A new verification code has been sent to your phone"
@@ -82,7 +80,7 @@ const Login: React.FC = () => {
       </Link>
 
       <div className="max-w-[1140px] mx-auto h-full flex items-center justify-center flex-col flex-1 ">
-        <Icons.pattern className="w-full absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2" />
+        {/* <Icons.pattern className="w-full absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2" /> */}
 
         {!verificationMode ? (
           <>
@@ -95,7 +93,7 @@ const Login: React.FC = () => {
             </p>
 
             <div className="space-y-6">
-              <PhoneInput
+              {/* <PhoneInput
                 setCountry={setCountryCode}
                 value={phoneNumber}
                 onChange={setPhoneNumber}
@@ -108,7 +106,8 @@ const Login: React.FC = () => {
                 onClick={handleContinue}
               >
                 {isSubmitting ? "Sending code..." : "Continue"}
-              </Button>
+              </Button> */}
+              <Button onClick={login}>Login</Button>
               <div id="recaptcha-container"></div>
             </div>
           </>
@@ -158,11 +157,10 @@ const Login: React.FC = () => {
                 Resend code
               </button>
             </div>
-          </div>
-          )}
+          </>
+        )}
       </div>
     </div>
-    </div >
   );
 };
 

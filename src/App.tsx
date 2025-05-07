@@ -7,6 +7,7 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import Layout from "./components/Layout";
+import { PrivyProvider } from '@privy-io/react-auth';
 import { AuthProvider } from "./context/AuthContext";
 import { WalletProvider } from "./context/WalletContext";
 
@@ -29,6 +30,8 @@ import SecuritySettings from "./pages/Settings/security/security-settings";
 import HelpCenter from "./pages/Settings/support/help-center";
 
 const queryClient = new QueryClient();
+const PRIVY_APP_ID = import.meta.env.VITE_APP_PRIVY_APP_ID;
+const PRIVY_CLIENT_ID = import.meta.env.VITE_APP_PRIVY_CLIENT_ID;
 
 const router = createBrowserRouter([
   {
@@ -103,12 +106,26 @@ const router = createBrowserRouter([
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
-        <WalletProvider>
-          <Toaster />
-          <RouterProvider router={router} />
-        </WalletProvider>
-      </AuthProvider>
+      <PrivyProvider
+        appId={PRIVY_APP_ID}
+        clientId={PRIVY_CLIENT_ID}
+        config={{
+          // Display email and wallet as login methods
+          loginMethods: ['telegram', 'sms'],
+          // Create embedded wallets for users who don't have a wallet
+          embeddedWallets: {
+            showWalletUIs: false,
+            createOnLogin: 'all-users'
+          }
+        }}
+      >
+        <AuthProvider>
+          <WalletProvider>
+            <Toaster />
+            <RouterProvider router={router} />
+          </WalletProvider>
+        </AuthProvider>
+      </PrivyProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

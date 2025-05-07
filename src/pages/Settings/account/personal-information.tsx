@@ -7,22 +7,23 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Camera, Loader2 } from "lucide-react";
+import { Camera, Loader2, Copy } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useCreateKernel } from "@/hooks/use-create-kernel";
 
 const PersonalInformation: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-
   const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(false);
+  const { address } = useCreateKernel();
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
-    email: user?.email || "",
-    phoneNumber: user?.phoneNumber || "",
+    email: user?.email?.address || "",
+    phone: user?.phone?.number || "",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,20 +34,21 @@ const PersonalInformation: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
-      // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Here you would actually update the user data through your API
-      // updateUser(formData);
-
       toast.success("Personal information updated successfully");
     } catch (error) {
       toast.error("Failed to update personal information");
       console.error(error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCopyAddress = () => {
+    if (address) {
+      navigator.clipboard.writeText(address);
+      toast.success("Wallet address copied to clipboard");
     }
   };
 
@@ -61,7 +63,7 @@ const PersonalInformation: React.FC = () => {
           transition={{ delay: 0.1 }}
         >
           {/* Profile Picture Card */}
-          <Card className="p-4 sm:p-5 md:p-6 mb-4 sm:mb-6">
+          {/* <Card className="p-4 sm:p-5 md:p-6 mb-4 sm:mb-6">
             <div className="flex flex-col items-center sm:flex-row sm:items-start gap-4">
               <div className="relative group">
                 <Avatar className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 border-2 border-primary">
@@ -71,6 +73,7 @@ const PersonalInformation: React.FC = () => {
                   </AvatarFallback>
                 </Avatar>
                 <Button
+                  type="button"
                   size="icon"
                   variant="secondary"
                   className="absolute -bottom-2 -right-2 h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-full"
@@ -80,23 +83,21 @@ const PersonalInformation: React.FC = () => {
               </div>
 
               <div className="text-center sm:text-left space-y-1 sm:space-y-2">
-                <h3 className="text-lg sm:text-xl font-medium">
-                  Profile Picture
-                </h3>
+                <h3 className="text-lg sm:text-xl font-medium">Profile Picture</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground">
                   Upload a clear photo of your face
                 </p>
                 <div className="flex gap-2 justify-center sm:justify-start">
-                  <Button size="sm" variant="outline">
+                  <Button type="button" size="sm" variant="outline">
                     Upload New
                   </Button>
-                  <Button size="sm" variant="ghost">
+                  <Button type="button" size="sm" variant="ghost">
                     Remove
                   </Button>
                 </div>
               </div>
             </div>
-          </Card>
+          </Card> */}
 
           {/* Personal Information Form */}
           <Card className="p-4 sm:p-5 md:p-6">
@@ -113,7 +114,7 @@ const PersonalInformation: React.FC = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
@@ -123,21 +124,49 @@ const PersonalInformation: React.FC = () => {
                     onChange={handleInputChange}
                     placeholder="Enter your email address"
                   />
-                </div>
+                </div> */}
 
                 <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Phone Number</Label>
+                  <Label htmlFor="phone">Phone Number</Label>
                   <Input
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
                     onChange={handleInputChange}
                     placeholder="Enter your phone number"
-                    disabled={!!user?.phoneNumber}
+                    disabled={!!user?.phone}
                   />
-                  {user?.phoneNumber && (
+                  {user?.phone && (
                     <p className="text-xs text-muted-foreground">
                       Phone number cannot be changed
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="walletAddress">Wallet Address</Label>
+                  <div className="relative">
+                    <Input
+                      id="walletAddress"
+                      name="walletAddress"
+                      value={address || "Loading..."}
+                      disabled
+                      className="pr-10 "
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="absolute inset-y-0 right-0 flex items-center justify-center p-0.5"
+                      onClick={handleCopyAddress}
+                      disabled={!address}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {address && (
+                    <p className="text-xs text-muted-foreground">
+                      We only support USDC on Base. Please do not use any other
                     </p>
                   )}
                 </div>

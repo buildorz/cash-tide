@@ -1,0 +1,2 @@
+
+export const USDC_ADDRESS = "0x036cbd53842c5426634e7929541ec2318f3dcf7e";

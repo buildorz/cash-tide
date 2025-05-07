@@ -1,84 +1,114 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { createContext, useState, useContext, useLayoutEffect } from "react";
+import { User, useLogin, useLogout, usePrivy } from "@privy-io/react-auth";
 import { showError, showSuccess } from "@/lib/utils";
-import { auth, RecaptchaVerifier, signInWithPhoneNumber } from "@/auth";
-import { ConfirmationResult } from "firebase/auth"
+import { axiosInstance } from "@/utils/axios";
 
-import React, {
-  createContext,
-  useState,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-} from "react";
-
-declare global {
-  interface Window {
-    recaptchaVerifier: RecaptchaVerifier;
-  }
+interface DbUser {
+  id: string;
+  name?: string | null;
+  phoneNumber: string;
+  walletAddress: string;
+  createdAt: string;
+  status: string;
 }
 
-interface User {
-  id: string;
-  phoneNumber: string;
-  email?: string;
-  name?: string;
-  balance: number;
+export interface AppUser extends User {
+  privyDID: string;
+  dbId: string;
+  name: string;
+  phone: { number: string };
+  wallet: { address: string } & Omit<User["wallet"], "address">;
+  createdAt: Date;
+  status: string;
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
   isAuthenticated: boolean;
-  login: (phoneNumber: string) => Promise<void>;
+  login: () => Promise<void>;
   logout: () => void;
   verifyCode: (code: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { authenticated } = usePrivy();
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(authenticated);
   const [isLoading, setIsLoading] = useState(true);
-  const [authData, setAuthData] = useState(null)
+
+  const { login: privyLogin } = useLogin({
+    onComplete: async ({ user: privyUser }) => {
+      try {
+        const privyDID = privyUser.id;
+        const walletAddress = privyUser.wallet?.address;
+        const phoneNumber = privyUser.phone?.number;
+        if (!walletAddress || !phoneNumber) {
+          throw new Error("Missing wallet or phone on Privy user");
+        }
+
+        let db: DbUser;
+        try {
+          const getResp = await axiosInstance.get<DbUser>(`/api/user/get/${privyDID}`);
+          db = getResp.data;
+        } catch (err: any) {
+          if (err.response?.status === 404 || err.response?.data?.message === "User not found") {
+            const createResp = await axiosInstance.post<DbUser>("/api/user/register", {
+              privyDID,
+              walletAddress,
+              phoneNumber,
+            });
+            db = createResp.data;
+          } else {
+            throw err;
+          }
+        }
+
+        const appUser: AppUser = {
+          ...privyUser,
+          privyDID,
+          dbId: db.id,
+          name: db.name,
+          phone: { number: db.phoneNumber },
+          wallet: { ...privyUser.wallet!, address: db.walletAddress },
+          createdAt: new Date(db.createdAt),
+          status: db.status,
+        };
+
+        setUser(appUser);
+        setIsAuthenticated(true);
+        localStorage.setItem("user", JSON.stringify(appUser));
+        showSuccess(
+          "Login successful",
+          `Welcome back${appUser.name ? appUser.name : ""}!`
+        );
+      } catch (err: any) {
+        console.error("Auth sync error:", err);
+        showError("Authentication Error", err.message || "Unable to sync with backend");
+      }
+    },
+    onError: (error) => {
+      console.error("Privy login error:", error);
+      showError("Login failed", "Failed to authenticate");
+    },
+  });
+
+  const { logout: privyLogout } = useLogout();
 
   useLayoutEffect(() => {
-    // Check if user is already logged in from localStorage
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      setUser(JSON.parse(stored));
       setIsAuthenticated(true);
     }
     setIsLoading(false);
   }, []);
 
-  const login = async (phoneNumber: string) => {
+  const login = async () => {
     try {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          size: 'normal',
-          callback: () => {
-            showSuccess('reCAPTCHA verified');
-          },
-          'expired-callback': () => {
-            showError('reCAPTCHA expired');
-          },
-        });
-      }
-      await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier).then((result) => {
-        console.log("result: ", result);
-        setAuthData(result);
-        showSuccess("Verification code sent", "Please check your phone");
-      }).catch((error) => {
-        console.error("Error during sign-in:", error);
-        showError("Sign-in failed", "Please try again later");
-      });
-      // This would normally make an API call to send a verification code
-      // For demo, we'll just simulate a successful code sending
-      showSuccess(
-        "Verification code sent",
-        `A code has been sent to ${phoneNumber}`
-      );
+      await privyLogin();
     } catch (error) {
       console.error("Login error:", error);
       showError("Login failed", "Please try again later");
@@ -86,59 +116,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const verifyCode = async (code: string): Promise<boolean> => {
-    try {
-      // This would normally verify the code with an API
-      // For demo, we'll just accept any code and create a mock user
-
-      // using the firebase confirmation result r
-      const confirmed = await authData.confirm(code);
-      // Create mock user
-      const mockUser: User = {
-        id: "user_" + Math.random().toString(36).substr(2, 9),
-        phoneNumber: "+91XXXXXXXXXX",
-        email: "user@example.com",
-        name: "Demo User",
-        balance: 0.0,
-      };
-
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      localStorage.setItem("user", JSON.stringify(mockUser));
-
-      showSuccess("Login successful", "You are now logged in");
-
-      return true;
-    } catch (error) {
-      console.error("Verification error:", error);
-      showError("Verification failed", "Invalid verification code");
-      return false;
-    }
+    showSuccess("Verification successful", "You are now logged in");
+    return true;
   };
 
   const logout = () => {
+    privyLogout();
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem("user");
     showSuccess("Logged out", "You have been successfully logged out");
   };
 
-  if (isLoading) {
-    return null;
-  }
+  if (isLoading) return null;
 
   return (
-    <AuthContext.Provider
-      value={{ user, isAuthenticated, login, logout, verifyCode }}
-    >
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, verifyCode }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };
