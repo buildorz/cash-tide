@@ -82,7 +82,7 @@ const tabLinks = [
 ];
 
 export default function Layout() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const [openMobile, setOpenMobile] = React.useState(false);
 
@@ -136,7 +136,11 @@ export default function Layout() {
             </Avatar>
             <div>
               <p className="font-medium text-sm">John Doe</p>
-              <p className="text-xs text-muted-foreground">john@example.com</p>
+              {user?.phone?.number && (
+                <p className="text-xs text-muted-foreground">
+                  {user.phone.number}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -202,9 +206,9 @@ export default function Layout() {
           </Link>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="rounded-full">
+          {/* <Button variant="ghost" size="icon" className="rounded-full">
             <Bell className="h-5 w-5" />
-          </Button>
+          </Button> */}
           <Avatar className="h-8 w-8 border border-border">
             <AvatarImage src="/placeholder-user.jpg" />
             <AvatarFallback className="bg-primary text-xs">JD</AvatarFallback>
@@ -221,10 +225,10 @@ export default function Layout() {
           </p>
         </div>
         <div className="flex items-center gap-4 ml-auto">
-          <Button variant="ghost" size="icon" className="rounded-full relative">
+          {/* <Button variant="ghost" size="icon" className="rounded-full relative">
             <Bell className="h-5 w-5" />
             <span className="absolute top-0 right-0 h-2 w-2 bg-primary rounded-full"></span>
-          </Button>
+          </Button> */}
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9 border border-border">
               <AvatarImage src="/placeholder-user.jpg" />
@@ -232,7 +236,11 @@ export default function Layout() {
             </Avatar>
             <div>
               <p className="font-medium text-sm">John Doe</p>
-              <p className="text-xs text-muted-foreground">Premium Account</p>
+              {user?.phone?.number && (
+                <p className="text-xs text-muted-foreground">
+                  {user.phone.number}
+                </p>
+              )}
             </div>
           </div>
         </div>

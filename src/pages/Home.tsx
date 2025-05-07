@@ -19,7 +19,6 @@ import { useSmartWalletBalance } from "@/hooks/use-balance";
 import { formatUnits } from "viem";
 
 export default function HomePage() {
-  // const { balance } = useWallet();
   const balanceWei = useSmartWalletBalance();
   const balance = parseFloat(formatUnits(balanceWei, 6));
   const navigate = useNavigate();
@@ -60,9 +59,9 @@ export default function HomePage() {
       >
         <div className="grid md:grid-cols-12 gap-6">
           <motion.div variants={itemVariants} className="md:col-span-8">
-            <Card className="bg-card border-border mb-6">
-              <CardContent className="p-6 md:p-8">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <Card className="bg-card border-border mb-6 h-full">
+              <CardContent className="p-6 md:p-8 h-full">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between h-full">
                   <div className="relative">
                     <div className="flex items-center justify-between w-full gap-10">
                       <p className="text-muted-foreground text-sm mb-1">
@@ -112,7 +111,7 @@ export default function HomePage() {
             </Card>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="md:col-span-4">
+          {/* <motion.div variants={itemVariants} className="md:col-span-4">
             <Card className="bg-card border-border">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -160,43 +159,42 @@ export default function HomePage() {
                 </motion.div>
               </CardContent>
             </Card>
-          </motion.div>
+          </motion.div> */}
 
-          <motion.div variants={itemVariants} className="md:col-span-3">
-            <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
+          <motion.div
+            variants={itemVariants}
+            className="md:col-span-4 flex flex-col h-full"
+          >
+            <div className="flex gap-3 h-full">
               <motion.button
                 onClick={() => navigate("/send")}
-                className="flex flex-col items-center justify-center p-4 rounded-xl bg-primary/5 hover:bg-primary/10 transition-colors relative group"
+                className="flex-1 flex flex-col items-center justify-center p-4 rounded-xl bg-primary/5 hover:bg-primary/10 transition-colors relative group"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2 sm:mb-3">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
                   <Send className="h-5 w-5 text-primary" />
                 </div>
-                <span className="text-sm font-medium whitespace-nowrap">
-                  Send
-                </span>
+                <span className="text-sm font-medium whitespace-nowrap">Send</span>
                 <div className="absolute inset-0 border border-transparent group-hover:border-primary/20 rounded-xl transition-all"></div>
               </motion.button>
 
               <motion.button
                 onClick={() => navigate("/request")}
-                className="flex flex-col items-center justify-center p-4 rounded-xl bg-primary/5 hover:bg-primary/10 transition-colors relative group"
+                className="flex-1 flex flex-col items-center justify-center p-4 rounded-xl bg-primary/5 hover:bg-primary/10 transition-colors relative group"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2 sm:mb-3">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
                   <CreditCard className="h-5 w-5 text-primary" />
                 </div>
-                <span className="text-sm font-medium whitespace-nowrap">
-                  Request
-                </span>
+                <span className="text-sm font-medium whitespace-nowrap">Request</span>
                 <div className="absolute inset-0 border border-transparent group-hover:border-primary/20 rounded-xl transition-all"></div>
               </motion.button>
             </div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="md:col-span-9">
+          <motion.div variants={itemVariants} className="md:col-span-12">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-medium">Recent Activity</h3>
               <Button
@@ -259,11 +257,10 @@ export default function HomePage() {
                           </div>
                         </div>
                         <p
-                          className={`font-medium ${
-                            transaction.isNegative
+                          className={`font-medium ${transaction.isNegative
                               ? "text-destructive"
                               : "text-primary"
-                          }`}
+                            }`}
                         >
                           {transaction.amount}
                         </p>

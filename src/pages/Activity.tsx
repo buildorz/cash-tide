@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, ArrowUpRight, ArrowDownLeft, Download, Upload } from 'lucide-react';
+import { Clock, ArrowUpRight, ArrowDownLeft, Download, Upload, Loader } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { axiosInstance } from '@/utils/axios';
@@ -115,11 +115,14 @@ const Activity: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [pendingRequests, setPendingRequests] = useState<Request[]>([]);
   const [activeTab, setActiveTab] = useState<'activity' | 'requests'>('activity');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [dataFetched, setDataFetched] = useState<boolean>(false);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchTransactions = async () => {
+      setIsLoading(true);
       try {
         // Fetch sent transactions
         const { data: sendData } = await axiosInstance.get<ApiTransaction[]>(
@@ -258,8 +261,13 @@ const Activity: React.FC = () => {
           // If requests endpoint doesn't exist yet, show empty
           setPendingRequests([]);
         }
+
+        setDataFetched(true);
       } catch (err) {
         console.error('Failed fetching transactions:', err);
+        setDataFetched(true);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -340,7 +348,7 @@ const Activity: React.FC = () => {
 
   // Helper function to format the amount with sign
   const formatAmount = (tx: Transaction) => {
-    const prefix = (tx.transactionType === 'send' || tx.transactionType === 'receive') ? '- ' : '+ ';
+    const prefix = (tx.transactionType === 'send' || tx.transactionType === 'withdrawal') ? '- ' : '+ ';
     return `${prefix}${tx.amount.toFixed(2)} $`;
   };
 
@@ -348,6 +356,17 @@ const Activity: React.FC = () => {
   const formatDate = (date: Date) => {
     return format(date, 'MMM d, yyyy • h:mm a');
   };
+
+  // Loading component
+  const LoadingState = () => (
+    <div className="flex flex-col items-center justify-center py-20">
+      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+        <Loader className="text-blue-500 animate-spin" size={24} />
+      </div>
+      <h3 className="text-xl font-medium mb-2">Loading transactions</h3>
+      <p className="text-gray-500">Please wait while we fetch your activity data...</p>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto py-6">
@@ -372,7 +391,9 @@ const Activity: React.FC = () => {
       </div>
 
       <div className="flex-1 px-4">
-        {activeTab === 'activity' ? (
+        {isLoading ? (
+          <LoadingState />
+        ) : activeTab === 'activity' ? (
           transactions.length === 0 ? (
             <EmptyState
               message="No activity yet"
@@ -414,6 +435,8 @@ const Activity: React.FC = () => {
               ))}
             </div>
           )
+        ) : isLoading ? (
+          <LoadingState />
         ) : pendingRequests.length === 0 ? (
           <EmptyState
             message="No requests yet"

@@ -3,7 +3,7 @@ import { useAuth } from "./AuthContext";
 import { showError, showSuccess } from "@/lib/utils";
 import { useCreateKernel } from "@/hooks/use-create-kernel";
 import { parseUnits, formatUnits, erc20Abi, encodeFunctionData } from "viem";
-import { useWallets } from "@privy-io/react-auth";
+import { useWallets, useFundWallet } from "@privy-io/react-auth";
 import { useSmartWalletBalance } from "@/hooks/use-balance";
 import { axiosInstance } from "@/utils/axios";
 import { USDC_ADDRESS } from "@/utils/constants";
@@ -29,6 +29,8 @@ interface WalletContextType {
   pendingRequests: Transaction[];
 }
 
+type FundingMethod = 'card' | 'apple_pay' | 'google_pay';
+
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -40,6 +42,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
   const { user } = useAuth();
   const { kernelClient, address } = useCreateKernel();
   const { wallets } = useWallets();
+  const { fundWallet } = useFundWallet();
 
   useEffect(() => {
     if (balanceWei) {
@@ -187,43 +190,41 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const addFunds = async (
-    amount: number,
-    method: "card" | "apple_pay" | "google_pay"
-  ): Promise<boolean> => {
+  const addFunds = async (amount: number, method: FundingMethod): Promise<boolean> => {
+    if (!address) {
+      console.error('No wallet address found for funding.');
+      return false;
+    }
     try {
-      if (amount <= 0) {
-        throw new Error("Amount must be greater than 0");
+      let defaultFundingMethod: 'card' | 'exchange' | 'wallet' | 'manual';
+      switch (method) {
+        case 'card':
+        case 'apple_pay':
+        case 'google_pay':
+          defaultFundingMethod = 'card';
+          break;
+        default:
+          defaultFundingMethod = 'card';
       }
+      await fundWallet(address, {
+        amount: amount.toString(),
+        defaultFundingMethod,
+      });
 
-      const transaction: Transaction = {
-        txhash: "tx_" + Math.random().toString(36).substr(2, 9),
-        type: "deposit",
+      const tx = {
+        txhash: `0x${Math.floor(Math.random() * 1e16).toString(16)}`,
         amount,
-        status: "completed",
+        method,
+        status: 'success',
       };
-
-      setTransactions((prev) => [transaction, ...prev]);
-
-      const methodName =
-        method === "card"
-          ? "Card"
-          : method === "apple_pay"
-            ? "Apple Pay"
-            : "Google Pay";
-
-      showSuccess(
-        "Funds added!",
-        `$${amount.toFixed(2)} added to your wallet via ${methodName}`
-      );
-
+      console.log('Transaction:', tx);
       return true;
     } catch (error) {
-      console.error("Add funds error:", error);
-      showError("Add funds failed", error.message || "Failed to add funds");
+      console.error('addFunds error:', error);
       return false;
     }
   };
+
 
   const pendingRequests = transactions.filter(
     (tx) => tx.type === "request" && tx.status === "pending"
