@@ -12,9 +12,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useCreateKernel } from "@/hooks/use-create-kernel";
+import axios from "axios";
 
 const PersonalInformation: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +27,8 @@ const PersonalInformation: React.FC = () => {
     phone: user?.phone?.number || "",
   });
 
+  console.log("user data kya aa raha hai??????", user);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -35,11 +38,19 @@ const PersonalInformation: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast.success("Personal information updated successfully");
+      const payload = {
+        name: formData.name,
+      };
+      await axios.put(
+        `http://localhost:3000/api/user/update/${user?.id}`,
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+      updateUser(formData.name);
+      toast.success("Name updated successfully");
     } catch (error) {
-      toast.error("Failed to update personal information");
       console.error(error);
+      toast.error("Failed to update personal information");
     } finally {
       setIsLoading(false);
     }
@@ -184,7 +195,7 @@ const PersonalInformation: React.FC = () => {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Updating...
+                      Updating…
                     </>
                   ) : (
                     "Save Changes"

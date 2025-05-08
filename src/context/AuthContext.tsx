@@ -29,6 +29,7 @@ interface AuthContextType {
   login: () => Promise<void>;
   logout: () => void;
   verifyCode: (code: string) => Promise<boolean>;
+  updateUser: (newName: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -108,11 +109,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async () => {
     try {
-      await privyLogin();
+      privyLogin();
     } catch (error) {
       console.error("Login error:", error);
       showError("Login failed", "Please try again later");
     }
+  };
+
+  const updateUser = (newName: string) => {
+    setUser((u) => {
+      if (!u) return u;
+      const updated = { ...u, name: newName };
+      localStorage.setItem("user", JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const verifyCode = async (code: string): Promise<boolean> => {
@@ -131,7 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   if (isLoading) return null;
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, verifyCode }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, verifyCode, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

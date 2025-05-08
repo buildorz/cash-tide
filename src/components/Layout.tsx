@@ -132,10 +132,12 @@ export default function Layout() {
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 border border-border">
               <AvatarImage src="/placeholder-user.jpg" />
-              <AvatarFallback className="bg-primary text-xs">JD</AvatarFallback>
+              <AvatarFallback className="bg-primary text-xs">
+                {user?.name?.[0]?.toUpperCase() || "U"}
+              </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-medium text-sm">John Doe</p>
+              <p className="font-medium text-sm">{user?.name || "User"}</p>
               {user?.phone?.number && (
                 <p className="text-xs text-muted-foreground">
                   {user.phone.number}
@@ -188,13 +190,13 @@ export default function Layout() {
                   <Avatar className="h-10 w-10 border border-border">
                     <AvatarImage src="/placeholder-user.jpg" />
                     <AvatarFallback className="bg-primary text-xs">
-                      JD
+                      {user?.name?.[0]?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium text-sm">John Doe</p>
+                    <p className="font-medium text-sm">{user?.name || "User"}</p>
                     <p className="text-xs text-muted-foreground">
-                      john@example.com
+                      {user?.phone?.number || "john@example.com"}
                     </p>
                   </div>
                 </div>
@@ -211,7 +213,9 @@ export default function Layout() {
           </Button> */}
           <Avatar className="h-8 w-8 border border-border">
             <AvatarImage src="/placeholder-user.jpg" />
-            <AvatarFallback className="bg-primary text-xs">JD</AvatarFallback>
+            <AvatarFallback className="bg-primary text-xs">
+              {user?.name?.[0]?.toUpperCase() || "U"}
+            </AvatarFallback>
           </Avatar>
         </div>
       </header>
@@ -232,10 +236,12 @@ export default function Layout() {
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9 border border-border">
               <AvatarImage src="/placeholder-user.jpg" />
-              <AvatarFallback className="bg-primary text-xs">JD</AvatarFallback>
+              <AvatarFallback className="bg-primary text-xs">
+                {user?.name?.[0]?.toUpperCase() || "U"}
+              </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-medium text-sm">John Doe</p>
+              <p className="font-medium text-sm">{user?.name || "User"}</p>
               {user?.phone?.number && (
                 <p className="text-xs text-muted-foreground">
                   {user.phone.number}
