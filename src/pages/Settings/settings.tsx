@@ -42,7 +42,7 @@ const Settings: React.FC = () => {
           icon: <User size={20} />,
           title: "Personal Information",
           description: "Update your personal details",
-          badge: "Incomplete",
+          badge: user?.name ? "Complete" : "Incomplete",
           path: "/settings/account/personal-information",
         },
         {

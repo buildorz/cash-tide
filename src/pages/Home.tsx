@@ -11,20 +11,94 @@ import {
   History,
   Plus,
   Send,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Download,
+  Upload,
+  Clock,
+  Loader,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useSmartWalletBalance } from "@/hooks/use-balance";
 import { formatUnits } from "viem";
+import { format } from "date-fns";
+import { useTransactions } from "@/hooks/use-transactions";
+import { Transaction } from "@/hooks/use-transactions";
 
 export default function HomePage() {
   const balanceWei = useSmartWalletBalance();
   const balance = parseFloat(formatUnits(balanceWei, 6));
   const navigate = useNavigate();
   const [showBalance, setShowBalance] = useState(true);
+  const { transactions, isLoading } = useTransactions(3);
 
   const toggleBalance = () => setShowBalance(!showBalance);
+
+  // Helper function to get transaction icon
+  const getTransactionIcon = (type: string) => {
+    switch(type) {
+      case 'send':
+        return <ArrowUpRight className="text-red-500" size={20} />;
+      case 'receive':
+        return <ArrowDownLeft className="text-green-500" size={20} />;
+      case 'deposit':
+        return <Download className="text-blue-500" size={20} />;
+      case 'withdrawal':
+        return <Upload className="text-orange-500" size={20} />;
+      default:
+        return <Clock className="text-gray-500" size={20} />;
+    }
+  };
+
+  // Helper function to get transaction color
+  const getTransactionColor = (type: string) => {
+    switch(type) {
+      case 'send':
+        return 'bg-red-100';
+      case 'receive':
+        return 'bg-green-100';
+      case 'deposit':
+        return 'bg-blue-100';
+      case 'withdrawal':
+        return 'bg-orange-100';
+      default:
+        return 'bg-gray-100';
+    }
+  };
+
+  // Helper function to get transaction text
+  const getTransactionText = (tx: Transaction) => {
+    switch(tx.transactionType) {
+      case 'send':
+        return 'Sent to ' + (tx.receiver?.name || formatPhoneNumber(tx.receiver?.phoneNumber || ''));
+      case 'receive':
+        return 'Received from ' + (tx.sender?.name || formatPhoneNumber(tx.sender?.phoneNumber || ''));
+      case 'deposit':
+        return 'Deposit to wallet';
+      case 'withdrawal':
+        return 'Withdrawal from wallet';
+      default:
+        return 'Transaction';
+    }
+  };
+
+  // Helper function to format phone number
+  const formatPhoneNumber = (phoneNumber: string) => {
+    return phoneNumber;
+  };
+
+  // Helper function to format the amount with sign
+  const formatAmount = (tx: Transaction) => {
+    const prefix = (tx.transactionType === 'send' || tx.transactionType === 'withdrawal') ? '- ' : '+ ';
+    return `${prefix}${tx.amount.toFixed(2)} $`;
+  };
+
+  // Helper function to format date
+  const formatDate = (date: Date) => {
+    return format(date, 'MMM d, yyyy • h:mm a');
+  };
 
   // Animation variants
   const containerVariants = {
@@ -208,67 +282,47 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-4">
-              {[
-                {
-                  name: "Alex Morgan",
-                  desc: "Coffee ☕ • 2 hours ago",
-                  amount: "-$4.50",
-                  isNegative: true,
-                  initials: "AM",
-                },
-                {
-                  name: "Sam Wilson",
-                  desc: "Dinner split 🍕 • Yesterday",
-                  amount: "+$12.75",
-                  isNegative: false,
-                  initials: "SM",
-                },
-                {
-                  name: "Jamie Lee",
-                  desc: "Monthly rent 🏠 • 3 days ago",
-                  amount: "-$850.00",
-                  isNegative: true,
-                  initials: "JL",
-                },
-              ].map((transaction, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 + index * 0.15 }}
-                >
-                  <Card className="bg-card border-border">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 border">
-                            <AvatarImage src="/placeholder-user.jpg" />
-                            <AvatarFallback className="bg-primary text-xs">
-                              {transaction.initials}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="text-sm font-medium">
-                              {transaction.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {transaction.desc}
-                            </p>
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader className="animate-spin text-primary" size={24} />
+                </div>
+              ) : transactions.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No recent transactions
+                </div>
+              ) : (
+                transactions.map((tx) => (
+                  <motion.div
+                    key={tx.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <Card className="bg-card border-border">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full ${getTransactionColor(tx.transactionType)} flex items-center justify-center`}>
+                              {getTransactionIcon(tx.transactionType)}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">
+                                {getTransactionText(tx)}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(tx.timestamp)}
+                              </p>
+                            </div>
                           </div>
+                          <p className={`font-medium ${tx.transactionType === 'send' ? 'text-destructive' : 'text-primary'}`}>
+                            {formatAmount(tx)}
+                          </p>
                         </div>
-                        <p
-                          className={`font-medium ${transaction.isNegative
-                              ? "text-destructive"
-                              : "text-primary"
-                            }`}
-                        >
-                          {transaction.amount}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))
+              )}
             </div>
           </motion.div>
         </div>
