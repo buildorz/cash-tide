@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AmountInput from "@/components/AmountInput";
-import PhoneInput from "@/components/PhoneInput";
-import Button from "@/components/Button";
-import { useWallet } from "@/context/WalletContext";
-import { useSmartWalletBalance } from "@/hooks/use-balance";
+import AmountInput from "../../components/AmountInput";
+import PhoneInput from "../../components/PhoneInput";
+import Button from "../../components/Button";
+import { useWallet } from "../../context/WalletContext";
+import { useSmartWalletBalance } from "../../hooks/use-balance";
 import { formatUnits } from "viem";
 import { Plus, ArrowLeft, Send as SendIcon, User2, Loader2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Card } from "../../components/ui/card";
 
 type Step = "amount" | "recipient" | "summary";
 
