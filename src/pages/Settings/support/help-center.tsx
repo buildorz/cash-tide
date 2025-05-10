@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import Header from "@/components/Header";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import Header from "../../../components/Header";
+import { Card } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/input";
+import { Button } from "../../../components/ui/button";
+import { Separator } from "../../../components/ui/separator";
 import {
   Search,
   ChevronRight,
@@ -23,8 +23,8 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
+} from "../../../components/ui/accordion";
+import { Badge } from "../../../components/ui/badge";
 import { toast } from "sonner";
 
 interface FAQ {
