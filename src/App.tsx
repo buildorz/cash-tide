@@ -110,9 +110,7 @@ const App = () => (
         appId={PRIVY_APP_ID}
         clientId={PRIVY_CLIENT_ID}
         config={{
-          // Display email and wallet as login methods
           loginMethods: ['telegram', 'sms'],
-          // Create embedded wallets for users who don't have a wallet
           embeddedWallets: {
             showWalletUIs: false,
             createOnLogin: 'all-users'
