@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Clock, ArrowUpRight, ArrowDownLeft, Download, Upload, Loader } from 'lucide-react';
 import { format } from 'date-fns';
-import { useAuth } from '@/context/AuthContext';
-import { useTransactions } from '@/hooks/use-transactions';
-import { Transaction } from '@/hooks/use-transactions';
+import { useAuth } from '../context/AuthContext';
+import { useTransactions } from '../hooks/use-transactions';
+import { Transaction } from '../hooks/use-transactions';
 
 interface Request {
   id: string;

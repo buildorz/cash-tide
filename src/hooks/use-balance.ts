@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useCreateKernel } from './use-create-kernel';      
-import { publicClient } from '@/lib/utils';
-import { USDC_ADDRESS } from '@/utils/constants';
+import { publicClient } from '../lib/utils';
+import { USDC_ADDRESS } from '../utils/constants';
 import { erc20Abi } from 'viem';
 
 export function useSmartWalletBalance() {

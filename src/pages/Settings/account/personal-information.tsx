@@ -1,17 +1,16 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import Header from "@/components/Header";
-import { useAuth } from "@/context/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Camera, Loader2, Copy } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import Header from "../../../components/Header";
+import { useAuth } from "../../../context/AuthContext";
+import { Button } from "../../../components/ui/button";
+import { Card } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
+import { Loader2, Copy } from "lucide-react";
+import { useIsMobile } from "../../../hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useCreateKernel } from "@/hooks/use-create-kernel";
+import { useCreateKernel } from "../../../hooks/use-create-kernel";
 import axios from "axios";
 
 const PersonalInformation: React.FC = () => {

@@ -1,24 +1,20 @@
 import React from "react";
 import { motion } from "framer-motion";
-import Header from "@/components/Header";
-import { useAuth } from "@/context/AuthContext";
+import Header from "../../components/Header";
+import { useAuth } from "../../context/AuthContext";
 import {
   User,
   CreditCard,
-  Shield,
-  Bell,
   HelpCircle,
   LogOut,
   ChevronRight,
-  Camera,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { Separator } from "../../components/ui/separator";
+import { useIsMobile } from "../../hooks/use-mobile";
 
 const Settings: React.FC = () => {
   const { user, logout } = useAuth();
