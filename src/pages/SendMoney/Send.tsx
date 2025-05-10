@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import AmountInput from "@/components/AmountInput";
-import PhoneInput from "@/components/PhoneInput";
-import Button from "@/components/Button";
-import { useWallet } from "@/context/WalletContext";
-import { useSmartWalletBalance } from "@/hooks/use-balance";
-import { formatUnits } from "viem";
+import { RequestModal } from "@/components/request-modal";
 import {
-  Plus,
   ArrowLeft,
+  Loader2,
+  Plus,
   Send as SendIcon,
   User2,
-  Loader2,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { RequestModal } from "@/components/request-modal";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { formatUnits } from "viem";
+import AmountInput from "../../components/AmountInput";
+import Button from "../../components/Button";
+import PhoneInput from "../../components/PhoneInput";
+import { Card } from "../../components/ui/card";
+import { useWallet } from "../../context/WalletContext";
+import { useSmartWalletBalance } from "../../hooks/use-balance";
 
 type Step = "amount" | "recipient" | "summary";
 

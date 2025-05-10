@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
-import AmountInput from "@/components/AmountInput";
-import Button from "@/components/Button";
-import { useWallet } from "@/context/WalletContext";
+import Header from "../components/Header";
+import AmountInput from "../components/AmountInput";
+import Button from "../components/Button";
+import { useWallet } from "../context/WalletContext";
 import { CreditCard, Apple, SmartphoneNfc } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "../components/ui/card";
 
 const AddFunds: React.FC = () => {
   const [amount, setAmount] = useState("0.00");

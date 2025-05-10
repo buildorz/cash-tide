@@ -1,12 +1,12 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useAuth } from "./AuthContext";
-import { showError, showSuccess } from "@/lib/utils";
-import { useCreateKernel } from "@/hooks/use-create-kernel";
+import { showError, showSuccess } from "../lib/utils";
+import { useCreateKernel } from "../hooks/use-create-kernel";
 import { parseUnits, formatUnits, erc20Abi, encodeFunctionData } from "viem";
 import { useWallets, useFundWallet } from "@privy-io/react-auth";
-import { useSmartWalletBalance } from "@/hooks/use-balance";
-import { axiosInstance } from "@/utils/axios";
-import { USDC_ADDRESS } from "@/utils/constants";
+import { useSmartWalletBalance } from "../hooks/use-balance";
+import { axiosInstance } from "../utils/axios";
+import { USDC_ADDRESS } from "../utils/constants";
 
 interface Transaction {
   txhash: string;

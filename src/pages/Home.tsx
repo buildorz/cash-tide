@@ -1,8 +1,8 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useWallet } from "@/context/WalletContext";
-import { formatNumber } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { useWallet } from "../context/WalletContext";
+import { formatNumber } from "../lib/utils";
 import {
   ChevronRight,
   CreditCard,
@@ -21,11 +21,11 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { useSmartWalletBalance } from "@/hooks/use-balance";
+import { useSmartWalletBalance } from "../hooks/use-balance";
 import { formatUnits } from "viem";
 import { format } from "date-fns";
-import { useTransactions } from "@/hooks/use-transactions";
-import { Transaction } from "@/hooks/use-transactions";
+import { useTransactions } from "../hooks/use-transactions";
+import { Transaction } from "../hooks/use-transactions";
 
 export default function HomePage() {
   const balanceWei = useSmartWalletBalance();

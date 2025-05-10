@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 import { Share2 } from "lucide-react";
-import { showSuccess } from "@/lib/utils";
-import Logo from "@/components/Logo";
-import { useAuth } from "@/context/AuthContext";
+import { showSuccess } from "../lib/utils";
+import Logo from "../components/Logo";
+import { useAuth } from "../context/AuthContext";
 import { QRCodeSVG } from "qrcode.react";
 
 const QRCode: React.FC = () => {
@@ -58,7 +58,7 @@ const QRCode: React.FC = () => {
               </div>
               <div className="w-full h-64 ">
                 <QRCodeSVG
-                  value={user.phoneNumber}
+                  value={user?.phone.number}
                   title={"CashTide QR Code"}
                   className="size-full"
                   bgColor={"#ffffff"}

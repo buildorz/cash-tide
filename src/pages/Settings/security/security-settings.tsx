@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import Header from "@/components/Header";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
+import Header from "../../../components/Header";
+import { Card } from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
+import { Separator } from "../../../components/ui/separator";
+import { Switch } from "../../../components/ui/switch";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
@@ -24,8 +24,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { useAuth } from "@/context/AuthContext";
+} from "../../../components/ui/dialog";
+import { useAuth } from "../../../context/AuthContext";
 
 const SecuritySettings: React.FC = () => {
   const navigate = useNavigate();

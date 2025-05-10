@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { Share2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useWallet } from "@/context/WalletContext";
-import { useAuth } from "@/context/AuthContext";
-import { showSuccess } from "@/lib/utils";
+import { useWallet } from "../../context/WalletContext";
+import { useAuth } from "../../context/AuthContext";
+import { showSuccess } from "../../lib/utils";
 
-import Header from "@/components/Header";
-import AmountInput from "@/components/AmountInput";
-import PhoneInput from "@/components/PhoneInput";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import Header from "../../components/Header";
+import AmountInput from "../../components/AmountInput";
+import PhoneInput from "../../components/PhoneInput";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
 
 type RequestStep = "amount" | "recipient" | "summary" | "share";
 type RequestType = "anyone" | "specific";
@@ -19,6 +19,7 @@ const RequestMoney: React.FC = () => {
   const [amount, setAmount] = useState("0.00");
   const [requestType, setRequestType] = useState<RequestType>("specific");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [country, setCountry] = useState("IN");
 
   const navigate = useNavigate();
   const { requestMoney } = useWallet();
@@ -131,6 +132,7 @@ const RequestMoney: React.FC = () => {
               value={phoneNumber}
               onChange={setPhoneNumber}
               placeholder="Enter phone number"
+              setCountry={setCountry}
             />
           </Card>
         </div>

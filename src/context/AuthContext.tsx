@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { createContext, useState, useContext, useLayoutEffect } from "react";
 import { User, useLogin, useLogout, usePrivy } from "@privy-io/react-auth";
-import { showError, showSuccess } from "@/lib/utils";
-import { axiosInstance } from "@/utils/axios";
+import { showError, showSuccess } from "../lib/utils";
+import { axiosInstance } from "../utils/axios";
 
 interface DbUser {
   id: string;

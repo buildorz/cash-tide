@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import Header from "@/components/Header";
-import { Card } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import Header from "../../../components/Header";
+import { Card } from "../../../components/ui/card";
+import { Switch } from "../../../components/ui/switch";
+import { Separator } from "../../../components/ui/separator";
+import { Label } from "../../../components/ui/label";
+import { RadioGroup, RadioGroupItem } from "../../../components/ui/radio-group";
 import {
   Bell,
   MessageSquare,
@@ -16,7 +16,7 @@ import {
   Lock,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "../../../hooks/use-mobile";
 
 const Notifications: React.FC = () => {
   const isMobile = useIsMobile();
