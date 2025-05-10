@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { axiosInstance } from '@/utils/axios';
-import { useAuth } from '@/context/AuthContext';
+import { axiosInstance } from '../utils/axios';
+import { useAuth } from '../context/AuthContext';
 
 export interface ApiTransaction {
   id: string;

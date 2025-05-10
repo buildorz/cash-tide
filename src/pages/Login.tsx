@@ -1,18 +1,16 @@
 import React, { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import PhoneInput from "@/components/PhoneInput";
-import Button from "@/components/Button";
-import Logo from "@/components/Logo";
+import { useAuth } from "../context/AuthContext";
+import PhoneInput from "../components/PhoneInput";
+import Button from "../components/Button";
+import Logo from "../components/Logo";
 import { toast } from "sonner";
-import { showError } from "@/lib/utils";
+import { showError } from "../lib/utils";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "@/components/ui/input-otp";
-import { Icons } from "@/components/ui/icons";
-import { UserIcon } from "lucide-react";
+} from "../components/ui/input-otp";
 
 const Login: React.FC = () => {
   const [countryCode, setCountryCode] = useState("");
