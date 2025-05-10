@@ -1,18 +1,29 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AmountInput from "@/components/AmountInput";
 import PhoneInput from "@/components/PhoneInput";
 import Button from "@/components/Button";
 import { useWallet } from "@/context/WalletContext";
 import { useSmartWalletBalance } from "@/hooks/use-balance";
 import { formatUnits } from "viem";
-import { Plus, ArrowLeft, Send as SendIcon, User2, Loader2 } from "lucide-react";
+import {
+  Plus,
+  ArrowLeft,
+  Send as SendIcon,
+  User2,
+  Loader2,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { RequestModal } from "@/components/request-modal";
 
 type Step = "amount" | "recipient" | "summary";
 
 const Send: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const requestId = searchParams.get("requestId") || undefined;
+
   const balanceWei = useSmartWalletBalance();
   const balance = parseFloat(formatUnits(balanceWei, 6));
   const { sendMoney } = useWallet();
@@ -22,6 +33,8 @@ const Send: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [, setCountryCode] = useState("+91");
   const [isLoading, setIsLoading] = useState(false);
+
+  const [showRequestModal, setShowRequestModal] = useState(false);
 
   const enteredAmount = parseFloat(amount);
   const insufficientFunds = enteredAmount > balance;
@@ -64,6 +77,12 @@ const Send: React.FC = () => {
   const handleAddFunds = () => {
     navigate("/add-funds");
   };
+
+  useEffect(() => {
+    if (requestId) {
+      setShowRequestModal(true);
+    }
+  }, [requestId]);
 
   const LoadingOverlay = () => (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
@@ -162,9 +181,7 @@ const Send: React.FC = () => {
                       <User2 className="h-5 w-5" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium">
-                        {phoneNumber}
-                      </div>
+                      <div className="text-sm font-medium">{phoneNumber}</div>
                       <div className="text-xs text-muted-foreground">
                         Mobile Number
                       </div>
@@ -181,7 +198,6 @@ const Send: React.FC = () => {
         );
     }
   };
-
   return (
     <div className="max-w-md mx-auto h-[calc(100vh-4rem)] flex flex-col">
       {isLoading && <LoadingOverlay />}
@@ -198,9 +214,9 @@ const Send: React.FC = () => {
               Add funds
             </Button>
           ) : (
-            <Button 
-              onClick={handleSend} 
-              className="w-full" 
+            <Button
+              onClick={handleSend}
+              className="w-full"
               size="lg"
               disabled={isLoading}
             >
@@ -225,6 +241,13 @@ const Send: React.FC = () => {
           </Button>
         )}
       </div>
+
+      {/* Payment Request Modal */}
+      <RequestModal
+        open={showRequestModal}
+        onOpenChange={setShowRequestModal}
+        requestId={requestId}
+      />
     </div>
   );
 };

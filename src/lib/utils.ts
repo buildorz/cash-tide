@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
 import { createPublicClient, http } from "viem";
@@ -35,3 +36,7 @@ export const publicClient = createPublicClient({
   chain: baseSepolia,
   transport: http(import.meta.env.VITE_APP_ZERODEV_RPC!),
 });
+
+export const formatDate = (dateString: string) => {
+  return format(new Date(dateString), "MMM d, yyyy • h:mm a");
+};
