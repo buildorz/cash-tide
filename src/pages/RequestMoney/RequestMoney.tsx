@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useWallet } from "../../context/WalletContext";
 import { useAuth } from "../../context/AuthContext";
 import { showSuccess } from "../../lib/utils";
+import { countries } from "../../components/CountrySelector";
 
 import Header from "../../components/Header";
 import AmountInput from "../../components/AmountInput";
@@ -19,7 +20,9 @@ const RequestMoney: React.FC = () => {
   const [amount, setAmount] = useState("0.00");
   const [requestType, setRequestType] = useState<RequestType>("specific");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [country, setCountry] = useState("IN");
+  const [country, setCountry] = useState(
+    countries.find(c => c.code === "US") || { code: "US", flag: "US", dialCode: "+1" }
+  );
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [requestId, setRequestId] = useState<string | null>(null);
@@ -197,10 +200,14 @@ const RequestMoney: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    🇮🇳
+                    <img
+                      src={`https://flagcdn.com/${country.code.toLowerCase()}.svg`}
+                      alt={country.code}
+                      className="w-6 h-6"
+                    />
                   </div>
                   <div>
-                    <div className="font-medium">IN</div>
+                    <div className="font-medium">{country.code}</div>
                     <div className="text-muted-foreground">{phoneNumber}</div>
                   </div>
                 </div>

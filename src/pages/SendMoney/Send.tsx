@@ -9,6 +9,7 @@ import { formatUnits } from "viem";
 import { Plus, ArrowLeft, Send as SendIcon, User2, Loader2, AlertCircle } from "lucide-react";
 import { Card } from "../../components/ui/card";
 import { useAuth } from "../../context/AuthContext";
+import { countries } from "../../components/CountrySelector";
 
 interface MoneyRequest {
   id: string;
@@ -47,7 +48,9 @@ const Send: React.FC = () => {
   const [step, setStep] = useState<Step>(navState && navState.recipientPhone && navState.amount ? "summary" : "amount");
   const [amount, setAmount] = useState(() => navState && navState.amount ? String(navState.amount) : "0.00");
   const [phoneNumber, setPhoneNumber] = useState(() => navState && navState.recipientPhone ? navState.recipientPhone : "");
-  const [, setCountryCode] = useState("+91");
+  const [country, setCountry] = useState(
+    countries.find(c => c.code === "US") || { code: "US", flag: "US", dialCode: "+1" }
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [requestDetails, setRequestDetails] = useState<MoneyRequest | null>(null);
@@ -253,7 +256,7 @@ const Send: React.FC = () => {
               value={phoneNumber}
               onChange={setPhoneNumber}
               placeholder="Enter phone number"
-              setCountry={setCountryCode}
+              setCountry={setCountry}
             />
           </div>
         );

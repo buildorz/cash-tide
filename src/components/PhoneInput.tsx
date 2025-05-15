@@ -5,7 +5,7 @@ interface PhoneInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  setCountry: (value: string) => void;
+  setCountry: (country: { code: string; flag: string; dialCode: string }) => void;
 }
 
 const PhoneInput: React.FC<PhoneInputProps> = ({
@@ -15,9 +15,9 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   setCountry
 }) => {
   const [selectedCountry, setSelectedCountry] = useState({
-    code: "IN",
-    flag: "IN",
-    dialCode: "+91",
+    code: "US",
+    flag: "US",
+    dialCode: "+1",
   });
 
   const handleCountryChange = (country: {
@@ -26,7 +26,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     dialCode: string;
   }) => {
     setSelectedCountry(country);
-    setCountry(country.dialCode);
+    setCountry(country);
     // immediately emit a new combined value if there's already a phone number
     if (value) {
       const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -40,19 +40,6 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     // combine with dial code, e.g. "+91 7012345678"
     const combined = `${selectedCountry.dialCode} ${digits}`;
     onChange(combined);
-  };
-
-  // Convert display format to E.164 format
-  const toE164 = (phone: string): string => {
-    return phone.replace(/\s+/g, "");
-  };
-
-  // Convert E.164 format to display format
-  const toDisplayFormat = (phone: string): string => {
-    if (!phone) return "";
-    const dialCode = selectedCountry.dialCode;
-    const number = phone.replace(dialCode, "").replace(/\D/g, "");
-    return `${dialCode} ${number}`;
   };
 
   return (
