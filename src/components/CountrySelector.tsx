@@ -18,7 +18,7 @@ interface CountrySelectorProps {
   className?: string;
 }
 
-const countries = [
+export const countries = [
   { code: "AF", flag: "AF", dialCode: "+93" }, // Afghanistan
   { code: "AL", flag: "AL", dialCode: "+355" }, // Albania
   { code: "DZ", flag: "DZ", dialCode: "+213" }, // Algeria
