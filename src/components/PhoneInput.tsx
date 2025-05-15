@@ -29,7 +29,8 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     setCountry(country.dialCode);
     // immediately emit a new combined value if there's already a phone number
     if (value) {
-      onChange(`${country.dialCode} ${value}`);
+      const digits = value.replace(/\D/g, "").slice(0, 10);
+      onChange(`${country.dialCode} ${digits}`);
     }
   };
 
@@ -37,13 +38,21 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     // strip non-digits
     const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
     // combine with dial code, e.g. "+91 7012345678"
-    const localFormatted =
-      digits.length <= 5
-        ? digits
-        : `${digits.slice(0, 5)} ${digits.slice(5)}`;
-    const combined = `${selectedCountry.dialCode} ${localFormatted}`;
+    const combined = `${selectedCountry.dialCode} ${digits}`;
     onChange(combined);
-    console.log("Phone number changed:", combined);
+  };
+
+  // Convert display format to E.164 format
+  const toE164 = (phone: string): string => {
+    return phone.replace(/\s+/g, "");
+  };
+
+  // Convert E.164 format to display format
+  const toDisplayFormat = (phone: string): string => {
+    if (!phone) return "";
+    const dialCode = selectedCountry.dialCode;
+    const number = phone.replace(dialCode, "").replace(/\D/g, "");
+    return `${dialCode} ${number}`;
   };
 
   return (

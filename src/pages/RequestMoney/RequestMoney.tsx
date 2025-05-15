@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Share2 } from "lucide-react";
+import { Share2, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useWallet } from "../../context/WalletContext";
 import { useAuth } from "../../context/AuthContext";
@@ -20,6 +20,9 @@ const RequestMoney: React.FC = () => {
   const [requestType, setRequestType] = useState<RequestType>("specific");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [country, setCountry] = useState("IN");
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [requestId, setRequestId] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const { requestMoney } = useWallet();
@@ -47,22 +50,51 @@ const RequestMoney: React.FC = () => {
   };
 
   const handleSendRequest = async () => {
-    if (requestType === "specific") {
-      const success = await requestMoney(parseFloat(amount), phoneNumber);
-      if (success) {
-        navigate("/home");
+    try {
+      setIsLoading(true);
+      const result = await requestMoney(
+        parseFloat(amount),
+        phoneNumber,
+        requestType === "anyone" ? "GLOBAL" : "DIRECT",
+        message
+      );
+      if (result.success) {
+        if (requestType === "anyone") {
+          setRequestId(result.requestId);
+          setCurrentStep("share");
+        } else {
+          navigate("/home");
+        }
       }
-    } else {
-      setCurrentStep("share");
+    } catch (error) {
+      console.error("Error requesting money:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleShare = () => {
+    if (!requestId) return;
+    const requestLink = `${window.location.origin}/send?requestId=${requestId}`;
+    navigator.clipboard.writeText(requestLink);
     showSuccess(
       "Link copied!",
       "Payment request link has been copied to clipboard"
     );
   };
+
+  const LoadingOverlay = () => (
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-card p-6 rounded-lg shadow-lg text-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
+        <h3 className="text-lg font-medium mb-2">Processing Request</h3>
+        <p className="text-muted-foreground">
+          Please wait while we send a request for ${amount} 
+          {requestType === "specific" ? ` to ${phoneNumber}` : ""}
+        </p>
+      </div>
+    </div>
+  );
 
   const renderAmountStep = () => (
     <>
@@ -156,27 +188,57 @@ const RequestMoney: React.FC = () => {
           <div className="text-5xl font-bold my-8">${amount}</div>
         </div>
 
-        {requestType === "specific" && (
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground mb-2">
-              Requesting from
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                🇮🇳
-              </div>
+        <Card className="p-4">
+          <div className="space-y-4">
+            {requestType === "specific" && (
               <div>
-                <div className="font-medium">IN</div>
-                <div className="text-muted-foreground">+91 {phoneNumber}</div>
+                <div className="text-sm text-muted-foreground mb-2">
+                  Requesting from
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    🇮🇳
+                  </div>
+                  <div>
+                    <div className="font-medium">IN</div>
+                    <div className="text-muted-foreground">{phoneNumber}</div>
+                  </div>
+                </div>
               </div>
+            )}
+
+            <div>
+              <div className="text-sm text-muted-foreground mb-2">
+                Add a message (optional)
+              </div>
+              <textarea
+                className="w-full p-2 border rounded-md"
+                placeholder="What's this request for?"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={3}
+              />
             </div>
-          </Card>
-        )}
+          </div>
+        </Card>
       </div>
 
-      <Button onClick={handleContinue} className="w-full">
-        {requestType === "anyone" && <Share2 size={18} className="mr-2" />}
-        {requestType === "specific" ? "Send Request" : "Share request link"}
+      <Button 
+        onClick={handleContinue} 
+        className="w-full"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+        ) : requestType === "anyone" ? (
+          <Share2 size={18} className="mr-2" />
+        ) : null}
+        {isLoading 
+          ? "Processing..." 
+          : requestType === "specific" 
+            ? "Send Request" 
+            : "Share request link"
+        }
       </Button>
     </>
   );
@@ -216,6 +278,7 @@ const RequestMoney: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto py-6">
+      {isLoading && <LoadingOverlay />}
       <div className="space-y-6">
         <Header
           title="Request Money"

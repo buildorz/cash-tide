@@ -83,8 +83,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem("user", JSON.stringify(appUser));
         showSuccess(
           "Login successful",
-          `Welcome back${appUser.name ? appUser.name : ""}!`
+          `Welcome back ${appUser.name ? appUser.name : ""}!`
         );
+
+        // Check for redirect URL after successful login
+        const redirectUrl = localStorage.getItem('redirectAfterLogin');
+        if (redirectUrl) {
+          localStorage.removeItem('redirectAfterLogin'); // Clean up
+          window.location.href = redirectUrl; // Use window.location for full page reload
+        }
       } catch (err: any) {
         console.error("Auth sync error:", err);
         showError("Authentication Error", err.message || "Unable to sync with backend");

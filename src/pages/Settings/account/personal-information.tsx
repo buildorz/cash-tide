@@ -11,7 +11,7 @@ import { useIsMobile } from "../../../hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useCreateKernel } from "../../../hooks/use-create-kernel";
-import axios from "axios";
+import { axiosInstance } from "../../../utils/axios";
 
 const PersonalInformation: React.FC = () => {
   const { user, updateUser } = useAuth();
@@ -40,8 +40,8 @@ const PersonalInformation: React.FC = () => {
       const payload = {
         name: formData.name,
       };
-      await axios.put(
-        `http://localhost:3000/api/user/update/${user?.id}`,
+      await axiosInstance.put(
+        `/api/user/update/${user?.id}`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );

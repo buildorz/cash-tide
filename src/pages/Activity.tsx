@@ -1,37 +1,45 @@
 import React, { useState } from 'react';
-import { Clock, ArrowUpRight, ArrowDownLeft, Download, Upload, Loader } from 'lucide-react';
-import { format } from 'date-fns';
+import { Clock, ArrowUpRight, ArrowDownLeft, Download, Upload, Loader, X, Check, AlertCircle } from 'lucide-react';
+import { format, parseISO, isValid } from 'date-fns';
 import { useAuth } from '../context/AuthContext';
 import { useTransactions } from '../hooks/use-transactions';
 import { Transaction } from '../hooks/use-transactions';
+import { useWallet } from '../context/WalletContext';
+import { Button } from '../components/ui/button';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "../components/ui/pagination";
+import { useNavigate } from 'react-router-dom';
 
-interface Request {
+interface MoneyRequest {
   id: string;
-  amount: number;
-  currency: string;
-  requestType: string;
-  description?: string;
+  requesterId: string;
+  payerId: string;
+  amountRequested: number;
+  requestStatus: "PENDING" | "CANCELLED" | "APPROVED" | "REJECTED";
+  requestDate: Date | string;
+  requestMessage?: string;
+  requestType: "GLOBAL" | "DIRECT";
   requester: {
-    id: string;
     name: string | null;
     phoneNumber: string;
-    walletAddress: string;
   };
-  requestTo: {
-    id: string;
-    name: string | null;
-    phoneNumber: string;
-    walletAddress: string;
-  };
-  timestamp: Date;
-  respondedAt?: Date;
-  status: string;
 }
 
 const Activity: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'activity' | 'requests'>('activity');
   const { transactions, isLoading } = useTransactions();
+  const { moneyRequests, cancelRequest, updateRequestStatus } = useWallet();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const navigate = useNavigate();
 
   const getDisplayInfo = (user: { name: string | null, phoneNumber: string }) => {
     return user.name || formatPhoneNumber(user.phoneNumber);
@@ -104,8 +112,229 @@ const Activity: React.FC = () => {
     return `${prefix}${tx.amount.toFixed(2)} $`;
   };
 
-  const formatDate = (date: Date) => {
-    return format(date, 'MMM d, yyyy • h:mm a');
+  const formatDate = (date: string | Date | undefined) => {
+    if (!date) return 'Invalid date';
+    
+    try {
+      let dateObj: Date;
+      
+      if (typeof date === 'string') {
+        // Try parsing ISO string first
+        dateObj = parseISO(date);
+        // If invalid, try parsing as regular date string
+        if (!isValid(dateObj)) {
+          dateObj = new Date(date);
+        }
+      } else {
+        dateObj = date;
+      }
+
+      if (!isValid(dateObj)) {
+        console.error('Invalid date:', date);
+        return 'Invalid date';
+      }
+
+      return format(dateObj, 'MMM d, yyyy • h:mm a');
+    } catch (error) {
+      console.error('Error formatting date:', error, 'Date value:', date);
+      return 'Invalid date';
+    }
+  };
+
+  const getRequestIcon = (status: string) => {
+    switch(status) {
+      case 'PENDING':
+        return <Clock className="text-yellow-500" size={20} />;
+      case 'COMPLETED':
+        return <Check className="text-green-500" size={20} />;
+      case 'CANCELLED':
+        return <X className="text-red-500" size={20} />;
+      case 'REJECTED':
+        return <AlertCircle className="text-red-500" size={20} />;
+      default:
+        return <Clock className="text-gray-500" size={20} />;
+    }
+  };
+
+  const getRequestColor = (status: string) => {
+    switch(status) {
+      case 'PENDING':
+        return 'bg-yellow-100';
+      case 'COMPLETED':
+        return 'bg-green-100';
+      case 'CANCELLED':
+      case 'REJECTED':
+        return 'bg-red-100';
+      default:
+        return 'bg-gray-100';
+    }
+  };
+
+  const handleRequestAction = async (requestId: string, action: 'APPROVE' | 'REJECT' | 'CANCEL') => {
+    if (action === 'CANCEL') {
+      await cancelRequest(requestId);
+    } else {
+      await updateRequestStatus(requestId, action === 'APPROVE' ? 'APPROVED' : 'REJECTED');
+    }
+  };
+
+  const getPaginatedItems = () => {
+    if (activeTab === 'activity') {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      return transactions.slice(startIndex, endIndex);
+    } else {
+      // Sort requests by date in descending order (latest first)
+      const sortedRequests = [...moneyRequests].sort((a, b) => {
+        const dateA = new Date(a.requestDate).getTime();
+        const dateB = new Date(b.requestDate).getTime();
+        return dateB - dateA;
+      });
+      
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      return sortedRequests.slice(startIndex, endIndex);
+    }
+  };
+
+  const getTotalPages = () => {
+    const items = activeTab === 'activity' ? transactions : moneyRequests;
+    return Math.ceil(items.length / itemsPerPage);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const renderPagination = () => {
+    const totalPages = getTotalPages();
+    if (totalPages <= 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    if (startPage > 1) {
+      pages.push(
+        <PaginationItem key="1">
+          <PaginationLink onClick={() => handlePageChange(1)}>1</PaginationLink>
+        </PaginationItem>
+      );
+      if (startPage > 2) {
+        pages.push(
+          <PaginationItem key="ellipsis-1">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            isActive={currentPage === i}
+            onClick={() => handlePageChange(i)}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        pages.push(
+          <PaginationItem key="ellipsis-2">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+      pages.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink onClick={() => handlePageChange(totalPages)}>
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    return (
+      <Pagination className="mt-6">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+              className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+          {pages}
+          <PaginationItem>
+            <PaginationNext
+              onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+              className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
+
+  const renderRequestActions = (request: MoneyRequest) => {
+    if (request.requestStatus !== 'PENDING') return null;
+
+    const isRequester = request.requesterId === user?.dbId;
+    const isPayer = request.payerId === user?.dbId;
+
+    if (isRequester) {
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-red-500 hover:text-red-600"
+          onClick={() => handleRequestAction(request.id, 'CANCEL')}
+        >
+          Cancel Request
+        </Button>
+      );
+    }
+    if (isPayer) {
+      return (
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-green-500 hover:text-green-600"
+            onClick={() => {
+              navigate('/send', {
+                state: {
+                  recipientPhone: request.requester.phoneNumber,
+                  amount: request.amountRequested,
+                  requestId: request.id
+                }
+              });
+            }}
+          >
+            Pay
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-red-500 hover:text-red-600"
+            onClick={() => handleRequestAction(request.id, 'REJECT')}
+          >
+            Reject
+          </Button>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   const LoadingState = () => (
@@ -126,7 +355,10 @@ const Activity: React.FC = () => {
           className={`flex-1 py-4 text-center font-medium ${
             activeTab === 'activity' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'
           }`}
-          onClick={() => setActiveTab('activity')}
+          onClick={() => {
+            setActiveTab('activity');
+            setCurrentPage(1);
+          }}
         >
           Activity
         </button>
@@ -134,7 +366,10 @@ const Activity: React.FC = () => {
           className={`flex-1 py-4 text-center font-medium ${
             activeTab === 'requests' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'
           }`}
-          onClick={() => setActiveTab('requests')}
+          onClick={() => {
+            setActiveTab('requests');
+            setCurrentPage(1);
+          }}
         >
           Requests
         </button>
@@ -150,46 +385,104 @@ const Activity: React.FC = () => {
               description="When there is a new transaction, it will show up here."
             />
           ) : (
+            <>
+              <div className="space-y-4">
+                {getPaginatedItems().map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="p-4 border rounded-lg bg-white flex flex-col"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center">
+                        <div
+                          className={`w-10 h-10 rounded-full ${getTransactionColor(tx.transactionType)} flex items-center justify-center mr-3`}
+                        >
+                          {getTransactionIcon(tx.transactionType)}
+                        </div>
+                        <div>
+                          <div className="font-medium">
+                            {getTransactionText(tx)}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {formatDate(tx.timestamp)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className={`font-medium ${getAmountStyle(tx.transactionType)}`}>
+                        {formatAmount(tx)}
+                      </div>
+                    </div>
+                    <div className="mt-2 text-xs text-gray-500 flex justify-between">
+                      <div>
+                        Status: <span className="capitalize">{tx.status}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {renderPagination()}
+            </>
+          )
+        ) : moneyRequests.length === 0 ? (
+          <EmptyState
+            message="No requests yet"
+            description="Money requests that you've sent or received will appear here."
+          />
+        ) : (
+          <>
             <div className="space-y-4">
-              {transactions.map((tx) => (
+              {getPaginatedItems().map((request) => (
                 <div
-                  key={tx.id}
+                  key={request.id}
                   className="p-4 border rounded-lg bg-white flex flex-col"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center">
                       <div
-                        className={`w-10 h-10 rounded-full ${getTransactionColor(tx.transactionType)} flex items-center justify-center mr-3`}
+                        className={`w-10 h-10 rounded-full ${getRequestColor(request.requestStatus)} flex items-center justify-center mr-3`}
                       >
-                        {getTransactionIcon(tx.transactionType)}
+                        {getRequestIcon(request.requestStatus)}
                       </div>
                       <div>
                         <div className="font-medium">
-                          {getTransactionText(tx)}
+                          {request.requestType === 'GLOBAL' ? 'Global Request' : 'Direct Request'}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {formatDate(tx.timestamp)}
+                          {formatDate(request.requestDate)}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          <span>From: {request.requesterId === user?.dbId ? 'You' : request.requester.name + ' - ' + request.requester.phoneNumber}</span>
+                          <span className="mx-2">|</span>
+                          <span>To: {request.payerId === user?.dbId ? 'You' : request.requestFrom.name + ' - ' + request.requestFrom.phoneNumber}</span>
                         </div>
                       </div>
                     </div>
-                    <div className={`font-medium ${getAmountStyle(tx.transactionType)}`}>
-                      {formatAmount(tx)}
+                    <div className="font-medium text-blue-600">
+                      {typeof request.amountRequested === "number" && !isNaN(request.amountRequested)
+                        ? `$${request.amountRequested.toFixed(2)}`
+                        : "$0.00"}
                     </div>
                   </div>
-                  <div className="mt-2 text-xs text-gray-500 flex justify-between">
-                    <div>
-                      Status: <span className="capitalize">{tx.status}</span>
+                  {request.requestMessage && (
+                    <div className="text-sm text-gray-600 mb-3">
+                      {request.requestMessage}
                     </div>
+                  )}
+                  <div className="mt-2 flex justify-between items-center">
+                    <div className="text-xs text-gray-500">
+                      Status: <span className="capitalize">
+                        {typeof request.requestStatus === "string"
+                          ? request.requestStatus.toLowerCase()
+                          : "pending"}
+                      </span>
+                    </div>
+                    {renderRequestActions(request as MoneyRequest)}
                   </div>
                 </div>
               ))}
             </div>
-          )
-        ) : (
-          <EmptyState
-            message="No requests yet"
-            description="Money requests that you've sent will appear here."
-          />
+            {renderPagination()}
+          </>
         )}
       </div>
     </div>
