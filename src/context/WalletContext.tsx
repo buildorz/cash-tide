@@ -334,6 +334,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
       };
       fetchRequests();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.dbId]);
 
   const addFunds = async (amount: number, method: FundingMethod): Promise<boolean> => {
