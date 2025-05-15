@@ -51,6 +51,10 @@ const router = createBrowserRouter([
         element: <Send />,
       },
       {
+        path: "send/:requestId",
+        element: <Send />,
+      },
+      {
         path: "request",
         element: <RequestMoney />,
       },
@@ -110,7 +114,7 @@ const App = () => (
         appId={PRIVY_APP_ID}
         clientId={PRIVY_CLIENT_ID}
         config={{
-          loginMethods: ['telegram', 'sms'],
+          loginMethods: ['sms'],
           embeddedWallets: {
             showWalletUIs: false,
             createOnLogin: 'all-users'

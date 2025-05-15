@@ -1,27 +1,125 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import AmountInput from "../../components/AmountInput";
 import PhoneInput from "../../components/PhoneInput";
 import Button from "../../components/Button";
 import { useWallet } from "../../context/WalletContext";
 import { useSmartWalletBalance } from "../../hooks/use-balance";
 import { formatUnits } from "viem";
-import { Plus, ArrowLeft, Send as SendIcon, User2, Loader2 } from "lucide-react";
+import { Plus, ArrowLeft, Send as SendIcon, User2, Loader2, AlertCircle } from "lucide-react";
 import { Card } from "../../components/ui/card";
+import { useAuth } from "../../context/AuthContext";
 
-type Step = "amount" | "recipient" | "summary";
+interface MoneyRequest {
+  id: string;
+  requesterId: string;
+  payerId: string;
+  amountRequested: number;
+  requestStatus: "PENDING" | "CANCELED" | "APPROVED" | "REJECTED";
+  requestDate: Date;
+  requestMessage?: string;
+  requestType: "GLOBAL" | "DIRECT";
+  requester: {
+    name: string | null;
+    phoneNumber: string;
+  };
+}
+
+type Step = "amount" | "recipient" | "summary" | "error";
 
 const Send: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { requestId: requestIdFromParams } = useParams();
+  const { user } = useAuth();
   const balanceWei = useSmartWalletBalance();
   const balance = parseFloat(formatUnits(balanceWei, 6));
-  const { sendMoney } = useWallet();
+  const { sendMoney, updateRequestStatus, getRequestDetails } = useWallet();
 
-  const [step, setStep] = useState<Step>("amount");
-  const [amount, setAmount] = useState("0.00");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  // Get requestId from URL query params or route params
+  const searchParams = new URLSearchParams(location.search);
+  const requestIdFromUrl = searchParams.get('requestId');
+  const requestId = requestIdFromParams || requestIdFromUrl;
+  
+  const navState = location.state as { recipientPhone?: string; amount?: number | string; requestId?: string } | undefined;
+  const stateRequestId = navState?.requestId;
+
+  const [step, setStep] = useState<Step>(navState && navState.recipientPhone && navState.amount ? "summary" : "amount");
+  const [amount, setAmount] = useState(() => navState && navState.amount ? String(navState.amount) : "0.00");
+  const [phoneNumber, setPhoneNumber] = useState(() => navState && navState.recipientPhone ? navState.recipientPhone : "");
   const [, setCountryCode] = useState("+91");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [requestDetails, setRequestDetails] = useState<MoneyRequest | null>(null);
+
+  // Check if user is authenticated
+  useEffect(() => {
+    if (requestId && !user) {
+      // Store the current URL in localStorage to redirect back after login
+      localStorage.setItem('redirectAfterLogin', window.location.href);
+      // Redirect to login page
+      navigate('/login');
+      return;
+    }
+  }, [requestId, user, navigate]);
+
+  // Validate request if requestId is present
+  useEffect(() => {
+    const validateRequest = async () => {
+      if (requestId && user) {
+        try {
+          setIsLoading(true);
+          console.log("Validating request for user:", user.dbId);
+          const request = await getRequestDetails(requestId);
+          console.log("Received request:", request);
+          
+          if (!request) {
+            console.error("No request found");
+            setError("Invalid request link");
+            setStep("error");
+            return;
+          }
+
+          if (request.requestStatus !== "PENDING") {
+            console.log("Request status:", request.requestStatus);
+            setError("This request has already been fulfilled");
+            setStep("error");
+            return;
+          }
+
+          if (request.payerId && request.payerId !== user?.dbId) {
+            console.log("Payer ID mismatch:", { requestPayerId: request.payerId, currentUserId: user.dbId });
+            setError("This request is not meant for you");
+            setStep("error");
+            return;
+          }
+
+          // If all validations pass, set the request details and move to summary
+          setRequestDetails(request);
+          setAmount(String(request.amountRequested));
+          setPhoneNumber(request.requester.phoneNumber);
+          setStep("summary");
+        } catch (error) {
+          console.error("Error validating request:", error);
+          setError("Error validating request");
+          setStep("error");
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    validateRequest();
+  }, [requestId, user?.dbId]);
+
+  // If user lands here with state, ensure summary is shown and values are set
+  useEffect(() => {
+    if (navState && navState.recipientPhone && navState.amount) {
+      setAmount(String(navState.amount));
+      setPhoneNumber(navState.recipientPhone);
+      setStep("summary");
+    }
+  }, [navState]);
 
   const enteredAmount = parseFloat(amount);
   const insufficientFunds = enteredAmount > balance;
@@ -52,10 +150,28 @@ const Send: React.FC = () => {
       setIsLoading(true);
       const success = await sendMoney(enteredAmount, phoneNumber);
       if (success) {
+        // Update request status if this was initiated from a money request
+        if (requestId || stateRequestId) {
+          await updateRequestStatus(requestId || stateRequestId, 'APPROVED');
+        }
         navigate("/home");
       }
     } catch (error) {
       console.error("Error sending money:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReject = async () => {
+    try {
+      setIsLoading(true);
+      if (requestId || stateRequestId) {
+        await updateRequestStatus(requestId || stateRequestId, 'REJECTED');
+        navigate("/home");
+      }
+    } catch (error) {
+      console.error("Error rejecting request:", error);
     } finally {
       setIsLoading(false);
     }
@@ -79,6 +195,24 @@ const Send: React.FC = () => {
 
   const renderStep = () => {
     switch (step) {
+      case "error":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between mb-6">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/home")}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="h-8 w-8 text-red-500" />
+              </div>
+              <h1 className="text-2xl font-bold mb-2">Error</h1>
+              <p className="text-muted-foreground">{error}</p>
+            </div>
+          </div>
+        );
+
       case "amount":
         return (
           <div className="space-y-6">
@@ -110,26 +244,17 @@ const Send: React.FC = () => {
               <Button variant="ghost" size="sm" onClick={handleBack}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <div className="text-sm text-muted-foreground">
-                Amount: ${amount}
-              </div>
             </div>
-            <div className="space-y-6">
-              <div className="text-center">
-                <h1 className="text-2xl font-bold mb-2">Recipient</h1>
-                <p className="text-muted-foreground">
-                  Enter the recipient's phone number
-                </p>
-              </div>
-              <Card className="p-2">
-                <PhoneInput
-                  setCountry={setCountryCode}
-                  value={phoneNumber}
-                  onChange={setPhoneNumber}
-                  placeholder="Enter phone number"
-                />
-              </Card>
+            <div className="text-center mb-4">
+              <h1 className="text-2xl font-bold mb-2">Send Money</h1>
+              <p className="text-muted-foreground">Enter recipient's phone number</p>
             </div>
+            <PhoneInput
+              value={phoneNumber}
+              onChange={setPhoneNumber}
+              placeholder="Enter phone number"
+              setCountry={setCountryCode}
+            />
           </div>
         );
 
@@ -171,6 +296,16 @@ const Send: React.FC = () => {
                     </div>
                   </div>
                 </div>
+
+                {requestDetails?.requestMessage && (
+                  <>
+                    <div className="h-px bg-border" />
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">Message</p>
+                      <p className="text-sm">{requestDetails.requestMessage}</p>
+                    </div>
+                  </>
+                )}
               </div>
             </Card>
 
@@ -188,29 +323,67 @@ const Send: React.FC = () => {
       <div>{renderStep()}</div>
       <div className="py-4">
         {step === "summary" ? (
-          insufficientFunds ? (
-            <Button
-              onClick={handleAddFunds}
-              className="w-full bg-primary"
-              size="lg"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Add funds
-            </Button>
-          ) : (
-            <Button 
-              onClick={handleSend} 
-              className="w-full" 
-              size="lg"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          requestId || stateRequestId ? (
+            <div className="flex gap-3">
+              <Button
+                onClick={handleReject}
+                variant="outline"
+                className="flex-1"
+                size="lg"
+                disabled={isLoading}
+              >
+                Reject
+              </Button>
+              {insufficientFunds ? (
+                <Button
+                  onClick={handleAddFunds}
+                  className="flex-1 bg-primary"
+                  size="lg"
+                >
+                  <Plus className="mr-2 h-5 w-5" />
+                  Add funds
+                </Button>
               ) : (
-                <SendIcon className="mr-2 h-5 w-5" />
+                <Button 
+                  onClick={handleSend} 
+                  className="flex-1" 
+                  size="lg"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  ) : (
+                    <SendIcon className="mr-2 h-5 w-5" />
+                  )}
+                  {isLoading ? "Processing..." : "Accept & Pay"}
+                </Button>
               )}
-              {isLoading ? "Processing..." : "Send Money"}
-            </Button>
+            </div>
+          ) : (
+            insufficientFunds ? (
+              <Button
+                onClick={handleAddFunds}
+                className="w-full bg-primary"
+                size="lg"
+              >
+                <Plus className="mr-2 h-5 w-5" />
+                Add funds
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleSend} 
+                className="w-full" 
+                size="lg"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <SendIcon className="mr-2 h-5 w-5" />
+                )}
+                {isLoading ? "Processing..." : "Send Money"}
+              </Button>
+            )
           )
         ) : (
           <Button

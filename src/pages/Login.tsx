@@ -50,7 +50,14 @@ const Login: React.FC = () => {
     try {
       const success = await verifyCode(verificationCode);
       if (success) {
-        navigate("/home");
+        // Check if there's a redirect URL stored
+        const redirectUrl = localStorage.getItem('redirectAfterLogin');
+        if (redirectUrl) {
+          localStorage.removeItem('redirectAfterLogin'); // Clean up
+          navigate(redirectUrl);
+        } else {
+          navigate("/home");
+        }
       }
     } catch (error) {
       console.error("Verification error:", error);

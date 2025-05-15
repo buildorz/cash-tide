@@ -158,9 +158,6 @@ export default function HomePage() {
                       <h2 className="text-5xl font-bold mb-1">
                         {showBalance ? formatNumber(Number(balance)) : "••••••"}
                       </h2>
-                      <p className="text-muted-foreground text-xs">
-                        {showBalance ? `${Number(balance)} USD` : "USD"}
-                      </p>
                     </motion.div>
                   </div>
 

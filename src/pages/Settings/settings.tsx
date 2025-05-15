@@ -41,13 +41,13 @@ const Settings: React.FC = () => {
           badge: user?.name ? "Complete" : "Incomplete",
           path: "/settings/account/personal-information",
         },
-        {
-          icon: <CreditCard size={20} />,
-          title: "Payment Methods",
-          description: "Manage your payment options",
-          badge: "2 Cards",
-          path: "/settings/account/payment-methods",
-        },
+        // {
+        //   icon: <CreditCard size={20} />,
+        //   title: "Payment Methods",
+        //   description: "Manage your payment options",
+        //   badge: "2 Cards",
+        //   path: "/settings/account/payment-methods",
+        // },
       ],
     },
     // {
