@@ -49,42 +49,69 @@ const Activity: React.FC = () => {
     return phoneNumber;
   };
 
-  const getTransactionIcon = (type: string) => {
-    switch(type) {
-      case 'send':
-        return <ArrowUpRight className="text-red-500" size={20} />;
-      case 'receive':
-        return <ArrowDownLeft className="text-green-500" size={20} />;
-      case 'deposit':
-        return <Download className="text-blue-500" size={20} />;
-      case 'withdrawal':
-        return <Upload className="text-orange-500" size={20} />;
-      default:
-        return <Clock className="text-gray-500" size={20} />;
+  const getTransactionIcon = (tx: Transaction) => {
+    const isSender = tx.sender?.id === user?.dbId;
+    const isReceiver = tx.receiver?.id === user?.dbId;
+
+    if (tx.transactionType === 'deposit') {
+      return <Download className="text-blue-500" size={20} />;
     }
+    if (tx.transactionType === 'withdrawal') {
+      return <Upload className="text-orange-500" size={20} />;
+    }
+    
+    // For send/receive transactions
+    if ((tx.transactionType === 'send' && isSender) || (tx.transactionType === 'receive' && isSender)) {
+      return <ArrowUpRight className="text-red-500" size={20} />;
+    }
+    if ((tx.transactionType === 'send' && isReceiver) || (tx.transactionType === 'receive' && isReceiver)) {
+      return <ArrowDownLeft className="text-green-500" size={20} />;
+    }
+    
+    return <Clock className="text-gray-500" size={20} />;
   };
 
-  const getTransactionColor = (type: string) => {
-    switch(type) {
-      case 'send':
-        return 'bg-red-100';
-      case 'receive':
-        return 'bg-green-100';
-      case 'deposit':
-        return 'bg-blue-100';
-      case 'withdrawal':
-        return 'bg-orange-100';
-      default:
-        return 'bg-gray-100';
+  const getTransactionColor = (tx: Transaction) => {
+    const isSender = tx.sender?.id === user?.dbId;
+    const isReceiver = tx.receiver?.id === user?.dbId;
+
+    if (tx.transactionType === 'deposit') {
+      return 'bg-blue-100';
     }
+    if (tx.transactionType === 'withdrawal') {
+      return 'bg-orange-100';
+    }
+    
+    // For send/receive transactions
+    if ((tx.transactionType === 'send' && isSender) || (tx.transactionType === 'receive' && isSender)) {
+      return 'bg-red-100';
+    }
+    if ((tx.transactionType === 'send' && isReceiver) || (tx.transactionType === 'receive' && isReceiver)) {
+      return 'bg-green-100';
+    }
+    
+    return 'bg-gray-100';
   };
 
   const getTransactionText = (tx: Transaction) => {
+    const isSender = tx.sender?.id === user?.dbId;
+    const isReceiver = tx.receiver?.id === user?.dbId;
+
     switch(tx.transactionType) {
       case 'send':
-        return 'Sent to ' + (tx.receiver ? getDisplayInfo(tx.receiver) : 'Unknown');
+        if (isSender) {
+          return 'Sent to ' + (tx.receiver ? getDisplayInfo(tx.receiver) : 'Unknown');
+        } else if (isReceiver) {
+          return 'Received from ' + (tx.sender ? getDisplayInfo(tx.sender) : 'Unknown');
+        }
+        return 'Transaction';
       case 'receive':
-        return 'Received from ' + (tx.sender ? getDisplayInfo(tx.sender) : 'Unknown');
+        if (isReceiver) {
+          return 'Received from ' + (tx.sender ? getDisplayInfo(tx.sender) : 'Unknown');
+        } else if (isSender) {
+          return 'Sent to ' + (tx.receiver ? getDisplayInfo(tx.receiver) : 'Unknown');
+        }
+        return 'Transaction';
       case 'deposit':
         return 'Deposit to wallet';
       case 'withdrawal':
@@ -94,17 +121,26 @@ const Activity: React.FC = () => {
     }
   };
 
-  const getAmountStyle = (type: string) => {
-    switch(type) {
-      case 'send':
-      case 'withdrawal':
-        return 'text-red-500';
-      case 'receive':
-      case 'deposit':
-        return 'text-green-500';
-      default:
-        return 'text-gray-500';
+  const getAmountStyle = (tx: Transaction) => {
+    const isSender = tx.sender?.id === user?.dbId;
+    const isReceiver = tx.receiver?.id === user?.dbId;
+
+    if (tx.transactionType === 'deposit') {
+      return 'text-green-500';
     }
+    if (tx.transactionType === 'withdrawal') {
+      return 'text-red-500';
+    }
+    
+    // For send/receive transactions
+    if ((tx.transactionType === 'send' && isSender) || (tx.transactionType === 'receive' && isSender)) {
+      return 'text-red-500';
+    }
+    if ((tx.transactionType === 'send' && isReceiver) || (tx.transactionType === 'receive' && isReceiver)) {
+      return 'text-green-500';
+    }
+    
+    return 'text-gray-500';
   };
 
   const formatAmount = (tx: Transaction) => {
@@ -395,9 +431,9 @@ const Activity: React.FC = () => {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center">
                         <div
-                          className={`w-10 h-10 rounded-full ${getTransactionColor(tx.transactionType)} flex items-center justify-center mr-3`}
+                          className={`w-10 h-10 rounded-full ${getTransactionColor(tx)} flex items-center justify-center mr-3`}
                         >
-                          {getTransactionIcon(tx.transactionType)}
+                          {getTransactionIcon(tx)}
                         </div>
                         <div>
                           <div className="font-medium">
@@ -408,7 +444,7 @@ const Activity: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      <div className={`font-medium ${getAmountStyle(tx.transactionType)}`}>
+                      <div className={`font-medium ${getAmountStyle(tx)}`}>
                         {formatAmount(tx)}
                       </div>
                     </div>

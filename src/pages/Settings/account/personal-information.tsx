@@ -10,7 +10,6 @@ import { Loader2, Copy } from "lucide-react";
 import { useIsMobile } from "../../../hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useCreateKernel } from "../../../hooks/use-create-kernel";
 import { axiosInstance } from "../../../utils/axios";
 
 const PersonalInformation: React.FC = () => {
@@ -18,7 +17,6 @@ const PersonalInformation: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(false);
-  const { address } = useCreateKernel();
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -56,8 +54,8 @@ const PersonalInformation: React.FC = () => {
   };
 
   const handleCopyAddress = () => {
-    if (address) {
-      navigator.clipboard.writeText(address);
+    if (user?.wallet?.address) {
+      navigator.clipboard.writeText(user.wallet.address);
       toast.success("Wallet address copied to clipboard");
     }
   };
@@ -159,7 +157,7 @@ const PersonalInformation: React.FC = () => {
                     <Input
                       id="walletAddress"
                       name="walletAddress"
-                      value={address || "Loading..."}
+                      value={user?.wallet?.address || "Loading..."}
                       disabled
                       className="pr-10 "
                     />
@@ -169,14 +167,14 @@ const PersonalInformation: React.FC = () => {
                       variant="ghost"
                       className="absolute inset-y-0 right-0 flex items-center justify-center p-0.5"
                       onClick={handleCopyAddress}
-                      disabled={!address}
+                      disabled={!user?.wallet?.address}
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
-                  {address && (
-                    <p className="text-xs text-muted-foreground">
-                      We only support USDC on Base. Please do not use any other
+                  {user?.wallet?.address && (
+                    <p className="text-xs text-muted-foreground text-red-600">
+                      ⚠️ Important: Only USDC on Base is supported. Do not send or use any other token or network, doing so may result in a permanent loss of funds.
                     </p>
                   )}
                 </div>
