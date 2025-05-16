@@ -59,7 +59,7 @@ const QRCode: React.FC = () => {
               <div className="w-full h-64 ">
                 <QRCodeSVG
                   value={user?.phone.number}
-                  title={"CashTide QR Code"}
+                  title={"Numpay QR Code"}
                   className="size-full"
                   bgColor={"#ffffff"}
                   fgColor={"#000000"}
@@ -87,7 +87,7 @@ const QRCode: React.FC = () => {
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold mb-4">Scan QR code to pay</h2>
               <p className="text-muted-foreground">
-                Point your camera at a CashTide QR code to make a payment
+                Point your camera at a Numpay QR code to make a payment
               </p>
             </div>
 
