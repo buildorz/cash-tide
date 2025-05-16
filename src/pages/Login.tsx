@@ -90,7 +90,7 @@ const Login: React.FC = () => {
         {!verificationMode ? (
           <>
             <h1 className="text-3xl font-bold mb-4 text-center">
-              Welcome to CashTide
+              Welcome to Numpay
             </h1>
             <p className="text-gray-600 text-center mb-8">
               Send money in seconds to anyone in the world, directly to their
@@ -122,7 +122,7 @@ const Login: React.FC = () => {
               Enter confirmation code
             </h1>
             <p className="text-gray-600 text-center mb-8">
-              Please check +91 {phoneNumber} for a message from CashTide and enter
+              Please check +91 {phoneNumber} for a message from Numpay and enter
               your code below.
             </p>
 
