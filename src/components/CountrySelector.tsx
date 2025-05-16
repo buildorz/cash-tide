@@ -18,6 +18,7 @@ interface CountrySelectorProps {
   className?: string;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const countries = [
   { code: "AF", flag: "AF", dialCode: "+93" }, // Afghanistan
   { code: "AL", flag: "AL", dialCode: "+355" }, // Albania
